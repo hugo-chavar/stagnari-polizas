@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
@@ -34,8 +34,8 @@ async def webhook(request: Request):
     else:
         response.message("I'm sorry, I didn't understand that.")
 
-    # Return the TwiML response
-    return str(response)
+    # Return the TwiML response with the correct Content-Type header
+    return Response(content=str(response), media_type="application/xml")
 
 @app.get("/")
 def read_root():
