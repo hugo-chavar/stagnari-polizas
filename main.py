@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
+from message_processor import generate_response
 import os
 
 # Load environment variables from .env file
@@ -26,13 +27,8 @@ async def webhook(request: Request):
     # Create a response object
     response = MessagingResponse()
 
-    # Simple bot logic
-    if "hello" in incoming_message:
-        response.message("Hi there! How can I help you?")
-    elif "bye" in incoming_message:
-        response.message("Goodbye! Have a great day!")
-    else:
-        response.message("I'm sorry, I didn't understand that.")
+    bot_response = generate_response(incoming_message)
+    response.message(bot_response)
 
     # Return the TwiML response with the correct Content-Type header
     return Response(content=str(response), media_type="application/xml")
