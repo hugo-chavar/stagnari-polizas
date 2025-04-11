@@ -36,3 +36,7 @@ async def webhook(request: Request):
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
+
+@app.post("/q")
+def answer_question(message: str, price: float = 0.0):
+    return {"received_message": f"OK. {message} - Price: {price}"}
