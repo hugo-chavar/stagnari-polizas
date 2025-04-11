@@ -1,22 +1,19 @@
+from policy_data import load_csv_data, filter_data
+from ai_agent import generate_query, generate_response
+
 def generate_response(incoming_message: str) -> str:
     """
     Processes incoming WhatsApp message and returns appropriate response.
     
     Args:
-        incoming_message: The received message (lowercased)
+        incoming_message: The received message
         
     Returns:
         str: The response to send back
     """
+    
     incoming_message = incoming_message.lower()
-    
-    if "hello" in incoming_message:
-        return "Hi there! How can I help you?"
-    elif "help" in incoming_message:
-        return "I can help with X, Y, and Z. What do you need?"
-    elif "bye" in incoming_message:
-        return "Goodbye! Have a great day!"
-    # Add more conditions as needed
-    
-    # Default response if no matches
-    return "I didn't understand that. Type 'help' for options."
+    load_csv_data()
+    query = generate_query(incoming_message)
+    filtered_data = filter_data(query)
+    return generate_response(filtered_data)
