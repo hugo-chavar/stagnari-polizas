@@ -7,8 +7,10 @@ import prompts
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
+MODEL = os.getenv("MODEL")
+URL = os.getenv("URL")
 
-client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com/v1")
+client = OpenAI(api_key=API_KEY, base_url=URL)
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
@@ -26,7 +28,7 @@ def generate_query(question):
     example_response = prompts.get_example_query_answer()
     
     response = client.chat.completions.create(
-        model="deepseek-chat",
+        model=MODEL,
         messages=[
             {"role": "user", "content": prompt},
             {"role": "user", "content": example_question},
