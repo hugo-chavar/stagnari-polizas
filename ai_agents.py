@@ -38,7 +38,8 @@ def generate_query(question):
         max_tokens=200
     )
     model_response = response.choices[0].message.content
-    print(f"Response:\n{model_response}")
+    print(f"Question:\n{question}")
+    print(f"Query:\n{model_response}")
     return json.loads(model_response)
 
 def generate_response(question, csv):
@@ -56,4 +57,6 @@ def generate_response(question, csv):
         stream=False
     )
 
-    return response.choices[0].message.content
+    model_response = response.choices[0].message.content
+    print(f"Final response:\n{model_response}")    
+    return model_response
