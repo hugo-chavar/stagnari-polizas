@@ -35,7 +35,7 @@ def generate_query(question):
     print(f"Response:\n{model_response}")
     return json.loads(model_response)
 
-def get_response(question, csv):
+def generate_response(question, csv):
     prompt = prompts.get_response_prompt(csv)
     example_question = prompts.get_example_question()
     example_answer = prompts.get_example_answer()
