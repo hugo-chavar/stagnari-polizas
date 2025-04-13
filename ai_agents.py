@@ -8,9 +8,9 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 MODEL = os.getenv("MODEL")
-URL = os.getenv("URL")
+API_URL = os.getenv("API_URL")
 
-client = OpenAI(api_key=API_KEY, base_url=URL)
+client = OpenAI(api_key=API_KEY, base_url=API_URL)
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
@@ -46,7 +46,7 @@ def generate_response(question, csv):
     example_question = prompts.get_example_question()
     example_answer = prompts.get_example_answer()
     response = client.chat.completions.create(
-        model="gemma3", #"deepseek-r1:1.5b",
+        model=MODEL,
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": example_question},

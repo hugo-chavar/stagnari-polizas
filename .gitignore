@@ -1,2 +1,4 @@
 .env
 test*/
+venv*/
+__pycache__/
