@@ -28,7 +28,7 @@ DataFrame columns are: Matricula, Referencia, Cliente, Marca, Modelo, Año
 Cliente: that contains full names (last name first, separated by commas) or company names.
 Matricula means: car license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
 Referencia: is a policy number. 'Referencia' and 'Poliza' have the same meaning.
-Marca: It is the brand of the vehicle. If user provides brands with periods like this B.M.W. remove periods and leave BMW. Also fix spelling mistakes like Toyta to TOYOTA.
+Marca: It is the brand of the vehicle. If user provides brands in short form like B.M.W. or VW insert wildcards between letters and remove periods. Also fix spelling mistakes like Toyta adding wildcards like Toy*ta.
 
 If the user only said hello or the question is not understandable, deduce what they are trying to find out and politely ask for clarification. In that case your response will be:
 {
