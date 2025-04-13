@@ -1,9 +1,14 @@
 import json
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 import prompts
 
-client = OpenAI(api_key="ollama", base_url="http://localhost:11434/v1")
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY")
+
+client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com/v1")
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
@@ -19,10 +24,9 @@ def generate_query(question):
     # TODO: replace accents
     example_question = prompts.get_example_query_question()
     example_response = prompts.get_example_query_answer()
-    # question2 = "Quiero obtener vehiculos que son modelo 2016 o superior y que son marca ford"
     
     response = client.chat.completions.create(
-        model="gemma3",
+        model="deepseek-chat",
         messages=[
             {"role": "user", "content": prompt},
             {"role": "user", "content": example_question},

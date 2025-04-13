@@ -1,13 +1,9 @@
 from fastapi import FastAPI, Request, Response
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from message_processor import generate_response
 import os
-
-# Load environment variables from .env file
-load_dotenv()
 
 app = FastAPI()
 
