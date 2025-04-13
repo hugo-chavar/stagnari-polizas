@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
+from pydantic import BaseModel
 from message_processor import generate_response
 import os
 
@@ -37,6 +38,10 @@ async def webhook(request: Request):
 def read_root():
     return {"message": "Hello World"}
 
+class Item(BaseModel):
+    message: str
+    price: float = 0.0
+
 @app.post("/q")
-def answer_question(message: str, price: float = 0.0):
-    return {"received_message": f"OK. {message} - Price: {price}"}
+def answer_question(item: Item):
+    return {"received_message": f"OK. {item.message} - Price: {item.price}"}
