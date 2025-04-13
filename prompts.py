@@ -47,6 +47,7 @@ Matricula: means car license plate. This may appear with a hyphen in the middle 
 Referencia: is a policy number. If user asks about "Poliza" refer to this column.
 Marca: It is the brand of the vehicle. If user provides brands with periods like this B.M.W. remove periods and leave BMW. Also fix spelling mistakes like Toyta to TOYOTA.
 
+Do not mention about the CSV or its columns in your answer. Just answer the question based on the data. 
 If you do not find the answer ask politely for more clarification based on the context
 """
 
