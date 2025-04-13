@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from pydantic import BaseModel
-from message_processor import generate_response
+from message_processor import get_response_to_message
 import os
 
 app = FastAPI()
@@ -24,7 +24,7 @@ async def webhook(request: Request):
     # Create a response object
     response = MessagingResponse()
 
-    bot_response = generate_response(incoming_message)
+    bot_response = get_response_to_message(incoming_message)
     response.message(bot_response)
 
     # Return the TwiML response with the correct Content-Type header
@@ -39,5 +39,5 @@ class Item(BaseModel):
 
 @app.post("/q")
 def answer_question(item: Item):
-    bot_response = generate_response(item.message)
+    bot_response = get_response_to_message(item.message)
     return {"received_message": f"OK.\n{bot_response}"}
