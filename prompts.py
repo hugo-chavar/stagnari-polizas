@@ -13,15 +13,16 @@ If multiple values are provided, use | to match any of them.
 
 If it is not clear (f.e.: user mispelled words) relax the filter so it can catch more results
 
-Output your response as a JSON object with this format:
+Output your response as a JSON object in this way:
 {
   "qs": "...",
   "c": ["col1", "col2", ...]
 }
 
 Where qs means query string and c means columns
+Return raw json without format or markdown-style
 
-Data will me filtered in this way df.query(query_string, engine='python')[columns]
+I will use to filter data in this way df.query(query_string, engine='python')[columns]
 
 DataFrame columns are: Matricula, Referencia, Cliente, Marca, Modelo, Año
 Cliente: that contains full names (last name first, separated by commas) or company names.
@@ -48,3 +49,15 @@ Marca: It is the brand of the vehicle. If user provides brands with periods like
 
 If you do not find the answer ask politely for more clarification based on the context
 """
+
+def get_example_query_question():
+    return "dame detalles del auto de bermudez c. y su numero de poliza"
+
+def get_example_query_answer():
+    return '{"qs": "(Cliente.str.contains(r\'\\\\bBermudez\\\\b\', case=False))", "c": ["Cliente", "Referencia", "Marca", "Modelo", "Año", "Matricula"]}'
+
+def get_example_question():
+    return "Cual es el numero de matricula del auto de Veronica Gabriela?"
+
+def get_example_answer():
+    return "El número de matricula del auto de Veronica Gabriela es AAQ4798."

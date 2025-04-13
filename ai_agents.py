@@ -1,7 +1,7 @@
 import json
 import os
 from openai import OpenAI
-from prompts import get_query_prompt, get_response_prompt
+import prompts
 
 client = OpenAI(api_key="ollama", base_url="http://localhost:11434/v1")
 
@@ -15,10 +15,10 @@ def clean_llm_json(raw_response: str) -> str:
 
 def generate_query(question):
     
-    prompt = get_query_prompt()
+    prompt = prompts.get_query_prompt()
     # TODO: replace accents
-    example_question = "dame detalles del auto de bermudez c. y su numero de poliza"
-    example_response = '{"qs": "(Cliente.str.contains(r\'\\\\bBermudez\\\\b\', case=False))", "c": ["Cliente", "Referencia", "Marca", "Modelo", "Año", "Matricula"]}'
+    example_question = prompts.get_example_query_question()
+    example_response = prompts.get_example_query_answer()
     # question2 = "Quiero obtener vehiculos que son modelo 2016 o superior y que son marca ford"
     
     response = client.chat.completions.create(
@@ -31,17 +31,20 @@ def generate_query(question):
         ],
         max_tokens=200
     )
-
-    return json.loads(clean_llm_json(response.choices[0].message.content))
+    model_response = response.choices[0].message.content
+    print(f"Response:\n{model_response}")
+    return json.loads(model_response)
 
 def get_response(question, csv):
-    prompt = get_response_prompt(csv)
+    prompt = prompts.get_response_prompt(csv)
+    example_question = prompts.get_example_question()
+    example_answer = prompts.get_example_answer()
     response = client.chat.completions.create(
         model="gemma3", #"deepseek-r1:1.5b",
         messages=[
-            {"role": "system", "content": prompt}, #. Provide in the answer a json string with the entire rows you consider for this answer
-            {"role": "user", "content": "Cual es el numero de matricula del auto de Veronica Gabriela?"},
-            {"role": "assistant", "content": "El número de matricula del auto de Veronica Gabriela es AAQ4798."},
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": example_question},
+            {"role": "assistant", "content": example_answer},
             {"role": "user", "content": question},
         ],
         stream=False
