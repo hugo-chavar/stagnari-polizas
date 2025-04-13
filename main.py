@@ -36,8 +36,8 @@ def read_root():
 
 class Item(BaseModel):
     message: str
-    price: float = 0.0
 
 @app.post("/q")
 def answer_question(item: Item):
-    return {"received_message": f"OK. {item.message} - Price: {item.price}"}
+    bot_response = generate_response(item.message)
+    return {"received_message": f"OK.\n{bot_response}"}
