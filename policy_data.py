@@ -23,6 +23,11 @@ def load_csv_data():
     df = pd.read_csv(StringIO(csv))
 
 def apply_filter(query_string, columns):
-    result = df.query(query_string, engine='python')[columns]
+    global df
+    result = None
+    if not query_string:
+        result = df[columns]
+    else:
+        result = df.query(query_string, engine='python')[columns]
     csv_string = result.to_csv(index=False, lineterminator ='\n')
     return csv_string
