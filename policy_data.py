@@ -30,4 +30,6 @@ def apply_filter(query_string, columns):
     else:
         result = df.query(query_string, engine='python')[columns]
     csv_string = result.to_csv(index=False, lineterminator ='\n')
+    print("Filtered data:")
+    print(csv_string)
     return csv_string
