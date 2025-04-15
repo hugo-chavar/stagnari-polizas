@@ -40,7 +40,7 @@ def generate_query(question):
     model_response = response.choices[0].message.content
     print(f"Question:\n{question}")
     print(f"Query:\n{model_response}")
-    return json.loads(model_response)
+    return json.loads(clean_llm_json(model_response))
 
 def generate_response(question, csv):
     prompt = prompts.get_response_prompt(csv)
