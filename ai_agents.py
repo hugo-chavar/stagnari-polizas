@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -11,6 +12,8 @@ MODEL = os.getenv("MODEL")
 API_URL = os.getenv("API_URL")
 
 client = OpenAI(api_key=API_KEY, base_url=API_URL)
+
+logger = logging.getLogger(__name__)
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
@@ -38,8 +41,8 @@ def generate_query(question):
         max_tokens=200
     )
     model_response = response.choices[0].message.content
-    print(f"Question:\n{question}")
-    print(f"Query:\n{model_response}")
+    logger.info(f"Question:\n{question}")
+    logger.info(f"Query:\n{model_response}")
     return json.loads(clean_llm_json(model_response))
 
 def generate_response(question, csv):
@@ -58,5 +61,5 @@ def generate_response(question, csv):
     )
 
     model_response = response.choices[0].message.content
-    print(f"Final response:\n{model_response}")    
+    logger.info(f"Final response:\n{model_response}")    
     return model_response

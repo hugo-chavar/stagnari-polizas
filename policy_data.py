@@ -1,3 +1,4 @@
+import logging
 import os
 import pandas as pd
 from datetime import datetime, timedelta
@@ -14,6 +15,7 @@ CSV_FILE_PATH= os.getenv("CSV_FILE_PATH")
 df = None
 last_update = None
 
+logger = logging.getLogger(__name__)
 
 def update_interval_has_passed():
     """Check if UPDATE_INTERVAL minutes have passed since last recorded timestamp."""
@@ -48,11 +50,11 @@ def update_interval():
 def load_csv_data():
     global df
     if update_interval_has_passed():
-        print("UPDATE_INTERVAL has passed - performing updates...")
+        logger.info("UPDATE_INTERVAL has passed - performing updates...")
         export_sheet_to_csv(GOOGLE_SHEET_URL, GOOGLE_SHEET_NAME, CSV_FILE_PATH)
         update_interval()
     else:
-        print("UPDATE_INTERVAL has not passed yet - skipping updates")
+        logger.info("UPDATE_INTERVAL has not passed yet - skipping updates")
     
     df = pd.read_csv(CSV_FILE_PATH)
 
@@ -65,8 +67,8 @@ def apply_filter(query_string, columns):
     else:
         result = df.query(query_string, engine='python')[columns]
     csv_string = result.to_csv(index=False, lineterminator ='\n')
-    print("Filtered data:")
-    print(csv_string)
+    logger.info("Filtered data:")
+    logger.info(csv_string)
     return csv_string
 
 

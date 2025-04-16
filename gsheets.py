@@ -1,5 +1,6 @@
 import csv, io, os
 import gspread
+import logging
 from dotenv import load_dotenv
 from google.oauth2 import service_account
 
@@ -7,8 +8,10 @@ load_dotenv()
 
 GOOGLE_API_CREDENTIALS_PATH = os.getenv("GOOGLE_API_CREDENTIALS_PATH")
 
+logger = logging.getLogger(__name__)
+
 def get_google_sheet(spreadsheet_url, sheet_name):
-    print(f"Inicia get_google_sheet. Sheet: {sheet_name}")
+    logger.info(f"Inicia get_google_sheet. Sheet: {sheet_name}")
 
     try:
         # Load credentials and create a client
@@ -25,13 +28,13 @@ def get_google_sheet(spreadsheet_url, sheet_name):
         spreadsheet = client.open_by_url(spreadsheet_url)
         sheet = spreadsheet.worksheet(sheet_name)
 
-        print("OK. Fin get_google_sheet")
+        logger.info("OK. Fin get_google_sheet")
 
         return sheet, True
 
     except Exception as e:
         error_message = f'Error al obtener la hoja de Google Sheets: {str(e)}'
-        print(error_message)
+        logger.info(error_message)
         return None, False
 
 def export_sheet_to_csv(spreadsheet_url, sheet_name, csv_file_path):
@@ -46,11 +49,11 @@ def export_sheet_to_csv(spreadsheet_url, sheet_name, csv_file_path):
     Returns:
         bool: True if export is successful, False otherwise.
     """
-    print(f"Inicia export_sheet_to_csv. Sheet: {sheet_name}")
+    logger.info(f"Inicia export_sheet_to_csv. Sheet: {sheet_name}")
     try:
         sheet, success = get_google_sheet(spreadsheet_url, sheet_name)
         if not success or sheet is None:
-            print("Failed to obtain the sheet using get_google_sheet")
+            logger.info("Failed to obtain the sheet using get_google_sheet")
             return False
 
         # Get all data from the sheet
@@ -60,11 +63,11 @@ def export_sheet_to_csv(spreadsheet_url, sheet_name, csv_file_path):
             writer = csv.writer(csv_file)
             writer.writerows(data)
 
-        print(f"OK. CSV export complete: {csv_file_path}")
+        logger.info(f"OK. CSV export complete: {csv_file_path}")
         return True
     except Exception as e:
         error_message = f"Error exporting sheet to CSV: {str(e)}"
-        print(error_message)
+        logger.info(error_message)
         return False
 
 def export_sheet_to_csv_string(spreadsheet_url, sheet_name):
@@ -78,11 +81,11 @@ def export_sheet_to_csv_string(spreadsheet_url, sheet_name):
     Returns:
         str: CSV formatted string if export is successful, otherwise an empty string.
     """
-    print(f"Inicia export_sheet_to_csv_string. Sheet: {sheet_name}")
+    logger.info(f"Inicia export_sheet_to_csv_string. Sheet: {sheet_name}")
     try:
         sheet, success = get_google_sheet(spreadsheet_url, sheet_name)
         if not success or sheet is None:
-            print("Failed to obtain the sheet using get_google_sheet")
+            logger.info("Failed to obtain the sheet using get_google_sheet")
             return ""
         # Get all data from the sheet
         data = sheet.get_all_values()
@@ -99,11 +102,11 @@ def export_sheet_to_csv_string(spreadsheet_url, sheet_name):
         csv_content = csv_output.getvalue()
         csv_output.close()
         
-        print("OK. CSV string export complete")
+        logger.info("OK. CSV string export complete")
         return csv_content
     except Exception as e:
         error_message = f"Error exporting sheet to CSV string: {str(e)}"
-        print(error_message)
-        print(error_message)
+        logger.info(error_message)
+        logger.info(error_message)
         return ""
 
