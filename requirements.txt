@@ -6,6 +6,7 @@ python-multipart
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
+gspread
 openai
 pandas
 requests
