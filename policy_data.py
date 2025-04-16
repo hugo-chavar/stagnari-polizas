@@ -16,6 +16,10 @@ df = None
 last_update = None
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 def update_interval_has_passed():
     """Check if UPDATE_INTERVAL minutes have passed since last recorded timestamp."""
