@@ -68,3 +68,6 @@ def apply_filter(query_string, columns):
     print("Filtered data:")
     print(csv_string)
     return csv_string
+
+
+load_csv_data()
