@@ -19,6 +19,7 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     if "?" in filter:
         # If the model didn't understand the message, return the follow up message
         return filter["?"]
-    # Apply the filter to the DataFrame
-    filtered_data = apply_filter(filter["qs"], filter["c"])
+    filtered_data = ""
+    if "qs" in filter and "c" in filter:
+        filtered_data = apply_filter(filter["qs"], filter["c"])
     return generate_response(incoming_message, filtered_data, to_number)
