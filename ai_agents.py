@@ -51,8 +51,8 @@ def generate_response(question, csv, client_number):
     # Save the new question to the database
     save_message(client_number, "user", question)
     
-    # Get the entire conversation history for this client
-    history = get_client_history(client_number)
+    # Get the conversation history from the last 2 days
+    history = get_client_history(client_number, days_limit=2)
     
     # Prepare the messages for the API call
     prompt = prompts.get_response_prompt(csv)
