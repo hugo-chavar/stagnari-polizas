@@ -27,16 +27,11 @@ def clean_llm_json(raw_response: str) -> str:
 def generate_query(question):
     
     prompt = prompts.get_query_prompt()
-    # TODO: replace accents
-    example_question = prompts.get_example_query_question()
-    example_response = prompts.get_example_query_answer()
     
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "user", "content": prompt},
-            {"role": "user", "content": example_question},
-            {"role": "assistant", "content": example_response},
             {"role": "user", "content": question}
         ],
         max_tokens=200
