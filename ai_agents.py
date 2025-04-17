@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import prompts
+from chat_history_db import save_message, get_client_history
 
 load_dotenv()
 
@@ -45,21 +46,35 @@ def generate_query(question):
     logger.info(f"Query:\n{model_response}")
     return json.loads(clean_llm_json(model_response))
 
-def generate_response(question, csv):
+
+def generate_response(question, csv, client_number):
+    # Save the new question to the database
+    save_message(client_number, "user", question)
+    
+    # Get the entire conversation history for this client
+    history = get_client_history(client_number)
+    
+    # Prepare the messages for the API call
     prompt = prompts.get_response_prompt(csv)
-    example_question = prompts.get_example_question()
-    example_answer = prompts.get_example_answer()
+    messages = [{"role": "system", "content": prompt}]
+    
+    # Add all previous messages to the context
+    for role, content in history[:-1]:  # exclude the current question which is already in history
+        messages.append({"role": role, "content": content})
+    
+    # Add the current question (in case it wasn't saved yet)
+    messages.append({"role": "user", "content": question})
+    
     response = client.chat.completions.create(
         model=MODEL,
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": example_question},
-            {"role": "assistant", "content": example_answer},
-            {"role": "user", "content": question},
-        ],
+        messages=messages,
         stream=False
     )
 
     model_response = response.choices[0].message.content
-    logger.info(f"Final response:\n{model_response}")    
+    logger.info(f"Final response:\n{model_response}")
+    
+    # Save the assistant's response to the database
+    save_message(client_number, "assistant", model_response)
+    
     return model_response

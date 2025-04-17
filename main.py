@@ -17,7 +17,7 @@ client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 def send_delayed_response(to_number: str, user_message: str):
     """Background task to process and send delayed message."""
-    response_text = get_response_to_message(user_message)
+    response_text = get_response_to_message(user_message, to_number)
     client.messages.create(
         body=response_text,
         from_=TWILIO_PHONE_NUMBER,
@@ -49,5 +49,5 @@ class Item(BaseModel):
 
 @app.post("/q")
 def answer_question(item: Item):
-    bot_response = get_response_to_message(item.message)
+    bot_response = get_response_to_message(item.message, "+12345678900")
     return {"received_message": f"OK.\n{bot_response}"}
