@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import prompts
-from chat_history_db import save_message, get_client_history
+from chat_history_db import save_message, get_client_history, save_query, get_query_history
 
 load_dotenv()
 
@@ -24,16 +24,23 @@ def clean_llm_json(raw_response: str) -> str:
     return "\n".join(lines)
 
 
-def generate_query(question):
+def generate_query(question, client_number):
+    # Save the new question to the database
+    save_query(client_number, "user", question)
+    
+    # Get the conversation history from the last 2 days
+    history = get_query_history(client_number, days_limit=2)
     
     prompt = prompts.get_query_prompt()
+    messages = [{"role": "system", "content": prompt}]
+    # Use the history messages, excluding the current question if already saved
+    for role, content in history[:-1]:
+        messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": question})
     
     response = client.chat.completions.create(
         model=MODEL,
-        messages=[
-            {"role": "user", "content": prompt},
-            {"role": "user", "content": question}
-        ],
+        messages=messages,
         max_tokens=200
     )
     model_response = response.choices[0].message.content
@@ -67,6 +74,8 @@ def generate_response(question, csv, client_number):
     )
 
     model_response = response.choices[0].message.content
+    # Clean the response to remove any unwanted formatting
+    model_response = model_response.replace("**", "*").strip()
     logger.info(f"Final response:\n{model_response}")
     
     # Save the assistant's response to the database
