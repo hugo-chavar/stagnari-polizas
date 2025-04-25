@@ -3,6 +3,8 @@ from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from pydantic import BaseModel
 from message_processor import get_response_to_message
+from chat_history_db import get_client_history, get_query_history
+
 import os
 
 app = FastAPI()
@@ -51,3 +53,13 @@ class Item(BaseModel):
 def answer_question(item: Item):
     bot_response = get_response_to_message(item.message, "+12345678900")
     return {"received_message": f"OK.\n{bot_response}"}
+
+@app.get("/client-history")
+def client_history_endpoint():
+    history = get_client_history()
+    return {"client_history": history}
+
+@app.get("/query-history")
+def query_history_endpoint():
+    history = get_query_history()
+    return {"query_history": history}
