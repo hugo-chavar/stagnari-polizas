@@ -57,13 +57,14 @@ def generate_response(question, csv, client_number):
     history = get_client_history(client_number, days_limit=2)
     
     # Prepare the messages for the API call
-    prompt = prompts.get_response_prompt(csv)
+    prompt = prompts.get_response_prompt()
     messages = [{"role": "system", "content": prompt}]
     
     # Add all previous messages to the context
     for role, content in history[:-1]:  # exclude the current question which is already in history
         messages.append({"role": role, "content": content})
     
+    messages.append({"role": "system", "content": f"CSV data: {csv}"})
     # Add the current question (in case it wasn't saved yet)
     messages.append({"role": "user", "content": question})
     
