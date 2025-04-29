@@ -105,15 +105,3 @@ Asignado: first name of the salesperson assigned to the client.
 Do not mention about the CSV or its columns in your answer. Just answer the question based on the data. 
 If you do not find the answer ask politely for more clarification based on the context
 """
-
-def get_example_query_question():
-    return "dame detalles del auto de bermudez c. y su numero de poliza"
-
-def get_example_query_answer():
-    return '{"qs": "(Cliente.str.contains(r\'\\\\bBermudez\\\\b\', case=False))", "c": ["Cliente", "Referencia", "Marca", "Modelo", "Año", "Matricula"]}'
-
-def get_example_question():
-    return "Cual es el numero de matricula del auto de Veronica Gabriela?"
-
-def get_example_answer():
-    return "El número de matricula del auto de Veronica Gabriela es AAQ4798."
