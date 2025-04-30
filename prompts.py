@@ -41,7 +41,7 @@ Otherwise, if a filter needs to be applied, use fillna to avoid NaN:
 2. **Columns that always go together**: include all the other columns of the group if one of them is present. Groups:
   a. Referencia, Cobertura, Deducible, Vencimiento, Compañia
   b. Marca, Modelo, Año, Combustible, Matricula
-3. **Use previous Q&A**: Use previous questions to have context.
+3. **Use previous Q&A**: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. Detect when user wants to change the person he is asking for
 
 DataFrame columns are: Matricula, Referencia, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. Also remember that the user could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account.
