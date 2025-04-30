@@ -9,12 +9,10 @@ import os
 
 app = FastAPI()
 
-# Get Twilio credentials from environment variables
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-# Initialize Twilio client
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 def send_delayed_response(to_number: str, user_message: str):
@@ -32,14 +30,11 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
     incoming_message = form_data.get("Body", "").lower()
     sender_number = form_data.get("From", "")
 
-    # Create a response object
     response = MessagingResponse()
     response.message("Ok! Aguardame unos instantes ...")
 
-    # Add background task to send full response
     background_tasks.add_task(send_delayed_response, sender_number, incoming_message)
 
-    # Return the TwiML response with the correct Content-Type header
     return Response(content=str(response), media_type="application/xml")
 
 @app.get("/")
