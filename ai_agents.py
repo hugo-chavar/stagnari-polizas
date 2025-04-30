@@ -51,6 +51,7 @@ def generate_query(question, client_number):
     model_response = response.choices[0].message.content
     logger.info(f"Question:\n{question}")
     logger.info(f"Query:\n{model_response}")
+    save_query(client_number, "assistant", model_response)
     return json.loads(clean_llm_json(model_response))
 
 
