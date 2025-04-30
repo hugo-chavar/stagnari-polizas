@@ -17,6 +17,18 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
+def add_business_participant(convo_sid: str):
+    participants = client.conversations.conversations(convo_sid).participants.list()
+    bot_address = TWILIO_PHONE_NUMBER
+    if any(p.messaging_binding.get("proxy_address") == bot_address for p in participants if p.messaging_binding):
+        return  # Already added
+
+    client.conversations.conversations(convo_sid).participants.create(
+        messaging_binding_address=bot_address,
+        messaging_binding_proxy_address=bot_address
+    )
+
+
 def send_typing_indicator(conversation_sid: str):
     url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/{TWILIO_PHONE_NUMBER}/Typing"
 
@@ -71,6 +83,7 @@ def send_delayed_response(user_number: str, user_message: str):
 
         # Ensure participant exists
         add_participant_if_needed(convo_sid, user_number)
+        add_business_participant(convo_sid)
 
         # Send typing indicator
         send_typing_indicator(convo_sid)
