@@ -43,12 +43,13 @@ Otherwise, if a filter needs to be applied, use fillna to avoid NaN:
   b. Marca, Modelo, Año, Combustible, Matricula
 3. **Use previous Q&A**: Use previous questions to have context.
 
-DataFrame columns are: Matricula, Referencia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
+DataFrame columns are: Matricula, Referencia, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. Also remember that the user could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account.
 Tel1: client's phone number.
 Mail: client's email.
 Matricula: vehicle's license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
 Referencia: policy's reference number. 'Referencia' and 'Poliza' have the same meaning.
+Compañia: insurance company.
 Cobertura: vehicle's insurance coverage.
 Deducible: policy's deductible amount.
 Vencimiento: policy's expiration date. Format is DD/MM/YYYY.
@@ -85,12 +86,13 @@ You are a data analysis assistant that speaks Spanish. Answer questions **strict
 6. **Maximum 1500 characters**
 
 ### CSV information:
-The columns are: Matricula, Referencia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado. Some columns could be missing
+The columns are: Matricula, Referencia, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado. Some columns could be missing
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. User could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account. 
 Tel1: customer's phone number.
 Mail: customer's email.
 Matricula: vehicle's license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
 Referencia: policy's reference number.
+Compañia: insurance company.
 Cobertura: policy's insurance coverage.
 Deducible: policy's deductible amount.
 Vencimiento: policy's expiration date. Format is DD/MM/YYYY.
