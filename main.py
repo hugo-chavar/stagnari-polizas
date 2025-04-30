@@ -30,7 +30,21 @@ def add_business_participant(convo_sid: str):
 
 
 def send_typing_indicator(conversation_sid: str):
-    url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/{TWILIO_PHONE_NUMBER}/Typing"
+    participants = client.conversations.conversations(conversation_sid).participants.list()
+
+    # Find the participant SID for the Twilio business number
+    bot_address = TWILIO_PHONE_NUMBER
+    participant_sid = None
+    for p in participants:
+        if p.messaging_binding and p.messaging_binding.get("proxy_address") == bot_address:
+            participant_sid = p.sid
+            break
+
+    if not participant_sid:
+        print("Business participant not found in conversation.", flush=True)
+        return
+
+    url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/{participant_sid}/Typing"
 
     response = requests.post(
         url,
