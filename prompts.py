@@ -39,7 +39,7 @@ Otherwise, if a filter needs to be applied, use fillna to avoid NaN:
   a. add wildcards in between words in the query string to capture all possible variations. We need relaxed queries because the user may not provide the exact name or spelling. Example: "González Marianela" could be "Cliente.str.contains('lez', case=False)" because few people has "lez" in the lastname and we ensure the query will return what we need.
   b. add wildcards to overcome possible spelling mistakes. Example: We have in the database these example cases: "Estevan" and "Esteban", "González" and "Gonzales", "Olivera" and "Oliveira"
 2. **Columns that always go together**: include all the other columns of the group if one of them is present. Groups:
-  a. Referencia, Cobertura, Deducible, Vencimiento
+  a. Referencia, Cobertura, Deducible, Vencimiento, Compañia
   b. Marca, Modelo, Año, Combustible, Matricula
 3. **Use previous Q&A**: Use previous questions to have context.
 
@@ -91,7 +91,7 @@ Cliente: contains full names (last name first, separated by commas) or company n
 Tel1: customer's phone number.
 Mail: customer's email.
 Matricula: vehicle's license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
-Referencia: policy's reference number.
+Referencia: policy's reference number. 'Referencia' and 'Poliza' have the same meaning.
 Compañia: insurance company.
 Cobertura: policy's insurance coverage.
 Deducible: policy's deductible amount.
