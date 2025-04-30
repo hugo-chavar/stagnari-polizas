@@ -45,7 +45,7 @@ def add_participant_if_needed(conversation_sid: str, user_number: str):
     # Add new participant
     client.conversations.conversations(conversation_sid).participants.create(
         messaging_binding_address=user_number,
-        messaging_binding_proxy_address=f"whatsapp:{TWILIO_PHONE_NUMBER}"
+        messaging_binding_proxy_address=TWILIO_PHONE_NUMBER
     )
 
 
