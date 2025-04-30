@@ -18,7 +18,7 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 def send_typing_indicator(conversation_sid: str):
-    url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/whatsapp:{TWILIO_PHONE_NUMBER}/Typing"
+    url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/{TWILIO_PHONE_NUMBER}/Typing"
 
     response = requests.post(
         url,
