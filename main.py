@@ -6,6 +6,8 @@ from chat_history_db import get_client_history, get_query_history
 
 import os
 import time
+import requests
+from requests.auth import HTTPBasicAuth
 
 app = FastAPI()
 
@@ -15,6 +17,16 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
+def send_typing_indicator(conversation_sid: str):
+    url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/whatsapp:{TWILIO_PHONE_NUMBER}/Typing"
+
+    response = requests.post(
+        url,
+        auth=HTTPBasicAuth(ACCOUNT_SID, AUTH_TOKEN)
+    )
+
+    if response.status_code != 204:
+        print(f"Failed to send typing indicator: {response.status_code} {response.text}", flush=True)
 
 def get_or_create_conversation(user_number: str) -> str:
     """
@@ -61,7 +73,7 @@ def send_delayed_response(user_number: str, user_message: str):
         add_participant_if_needed(convo_sid, user_number)
 
         # Send typing indicator
-        client.conversations.conversations(convo_sid).typing().create()
+        send_typing_indicator(convo_sid)
 
         # Get bot response
         response_text = get_response_to_message(user_message, user_number)
