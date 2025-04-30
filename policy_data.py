@@ -67,9 +67,15 @@ def apply_filter(query_string, columns):
     global df
     result = None
     if not query_string:
-        result = df[columns]
+        if columns:
+            result = df[columns]
+        else:
+            result = df
     else:
-        result = df.query(query_string, engine='python')[columns]
+        if columns:
+            result = df.query(query_string, engine='python')[columns]
+        else:
+            result = df.query(query_string, engine='python')
     csv_string = result.to_csv(index=False, lineterminator ='\n')
     logger.info("Filtered data:")
     logger.info(csv_string)

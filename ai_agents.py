@@ -18,10 +18,13 @@ logger = logging.getLogger(__name__)
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
+    logger.info(f"Raw response from LLM:\n{raw_response}")
     lines = raw_response.strip().splitlines()
     # Remove lines that start or end code blocks
     lines = [line for line in lines if not line.strip().startswith("```")]
-    return "\n".join(lines)
+    clean_llm_json = "\n".join(lines)
+    logger.info(f"Cleaned LLM JSON:\n{clean_llm_json}")
+    return clean_llm_json
 
 
 def generate_query(question, client_number):
@@ -38,10 +41,12 @@ def generate_query(question, client_number):
         messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": question})
     
+    # logger.info(f"Messages for query generation:\n{messages}")
+    
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,
-        max_tokens=200
+        max_tokens=400
     )
     model_response = response.choices[0].message.content
     logger.info(f"Question:\n{question}")

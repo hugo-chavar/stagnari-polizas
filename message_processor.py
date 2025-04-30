@@ -25,7 +25,11 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     filtered_data = ""
     if "qs" in filter and "c" in filter:
         try:
-            filtered_data = apply_filter(filter["qs"], filter["c"])
+            rows_filter = filter["qs"]
+            columns_filter = filter["c"]
+            if "p" in filter and filter["p"]:
+                columns_filter = None
+            filtered_data = apply_filter(rows_filter, columns_filter)
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
             return f"Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
