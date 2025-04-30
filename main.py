@@ -18,17 +18,19 @@ client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 def get_or_create_conversation(user_number: str) -> str:
     """
-    Check if a conversation exists for this user; if not, create it.
-    Uses the user's WhatsApp number as the friendly name.
+    Checks for an existing conversation with friendly_name = user_number.
+    Creates one if not found.
     """
-    # Check for existing conversation
-    existing_convos = client.conversations.conversations.list(friendly_name=user_number)
-    if existing_convos:
-        return existing_convos[0].sid
+    conversations = client.conversations.conversations.list(limit=50)  # page this if needed
+
+    for convo in conversations:
+        if convo.friendly_name == user_number:
+            return convo.sid
 
     # Create a new conversation
     convo = client.conversations.conversations.create(friendly_name=user_number)
     return convo.sid
+
 
 
 def add_participant_if_needed(conversation_sid: str, user_number: str):
