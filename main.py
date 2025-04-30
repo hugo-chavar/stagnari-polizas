@@ -90,18 +90,19 @@ def read_root():
 
 class Item(BaseModel):
     message: str
+    number: str
 
 @app.post("/q")
 def answer_question(item: Item):
-    bot_response = get_response_to_message(item.message, "+12345678900")
+    bot_response = get_response_to_message(item.message, item.number)
     return {"received_message": f"OK.\n{bot_response}"}
 
 @app.get("/client-history")
-def client_history_endpoint():
-    history = get_client_history()
+def client_history_endpoint(item: Item):
+    history = get_client_history(item.number)
     return {"client_history": history}
 
 @app.get("/query-history")
-def query_history_endpoint():
-    history = get_query_history()
+def query_history_endpoint(item: Item):
+    history = get_query_history(item.message)
     return {"query_history": history}
