@@ -5,7 +5,6 @@ from message_processor import get_response_to_message
 from chat_history_db import get_client_history, get_query_history
 
 import os
-import time
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -18,25 +17,23 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 def add_business_participant(convo_sid: str):
+    """Ensure the Twilio bot number is added as a participant."""
     participants = client.conversations.conversations(convo_sid).participants.list()
-    bot_address = TWILIO_PHONE_NUMBER
-    if any(p.messaging_binding.get("proxy_address") == bot_address for p in participants if p.messaging_binding):
-        return  # Already added
-
+    for p in participants:
+        if p.messaging_binding and p.messaging_binding.get("proxy_address") == TWILIO_PHONE_NUMBER:
+            return
     client.conversations.conversations(convo_sid).participants.create(
-        messaging_binding_address=bot_address,
-        messaging_binding_proxy_address=bot_address
+        messaging_binding_address=TWILIO_PHONE_NUMBER,
+        messaging_binding_proxy_address=TWILIO_PHONE_NUMBER
     )
 
 
 def send_typing_indicator(conversation_sid: str):
+    """Send a typing indicator from the bot to the user."""
     participants = client.conversations.conversations(conversation_sid).participants.list()
-
-    # Find the participant SID for the Twilio business number
-    bot_address = TWILIO_PHONE_NUMBER
     participant_sid = None
     for p in participants:
-        if p.messaging_binding and p.messaging_binding.get("proxy_address") == bot_address:
+        if p.messaging_binding and p.messaging_binding.get("proxy_address") == TWILIO_PHONE_NUMBER:
             participant_sid = p.sid
             break
 
@@ -45,7 +42,6 @@ def send_typing_indicator(conversation_sid: str):
         return
 
     url = f"https://conversations.twilio.com/v1/Conversations/{conversation_sid}/Participants/{participant_sid}/Typing"
-
     response = requests.post(
         url,
         auth=HTTPBasicAuth(ACCOUNT_SID, AUTH_TOKEN)
@@ -55,32 +51,21 @@ def send_typing_indicator(conversation_sid: str):
         print(f"Failed to send typing indicator: {response.status_code} {response.text}", flush=True)
 
 def get_or_create_conversation(user_number: str) -> str:
-    """
-    Checks for an existing conversation with friendly_name = user_number.
-    Creates one if not found.
-    """
+    """Get or create a unique conversation per user."""
     conversations = client.conversations.conversations.list(limit=50)  # page this if needed
-
     for convo in conversations:
         if convo.friendly_name == user_number:
             return convo.sid
-
-    # Create a new conversation
     convo = client.conversations.conversations.create(friendly_name=user_number)
     return convo.sid
 
 
-
 def add_participant_if_needed(conversation_sid: str, user_number: str):
-    """
-    Adds the WhatsApp user to the conversation if they're not already in it.
-    """
+    """Ensure the user is added to the conversation."""
     participants = client.conversations.conversations(conversation_sid).participants.list()
     for p in participants:
         if p.messaging_binding and p.messaging_binding.get("address") == user_number:
-            return  # Already added
-
-    # Add new participant
+            return
     client.conversations.conversations(conversation_sid).participants.create(
         messaging_binding_address=user_number,
         messaging_binding_proxy_address=TWILIO_PHONE_NUMBER
@@ -88,26 +73,18 @@ def add_participant_if_needed(conversation_sid: str, user_number: str):
 
 
 def send_delayed_response(user_number: str, user_message: str):
-    """
-    Background task: send typing indicator and then the actual response.
-    """
+    """Process user input and send delayed bot response."""
     try:
-        # Get or create conversation
         convo_sid = get_or_create_conversation(user_number)
-
-        # Ensure participant exists
         add_participant_if_needed(convo_sid, user_number)
         add_business_participant(convo_sid)
 
-        # Send typing indicator
         send_typing_indicator(convo_sid)
 
-        # Get bot response
         response_text = get_response_to_message(user_message, user_number)
 
-        # Send response
         client.conversations.conversations(convo_sid).messages.create(
-            author=f"{TWILIO_PHONE_NUMBER}",
+            author=TWILIO_PHONE_NUMBER,
             body=response_text
         )
 
