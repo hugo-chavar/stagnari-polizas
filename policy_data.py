@@ -103,7 +103,7 @@ If you don't find a a good match relax the filter so it can catch more results. 
     
     return prompt
 
-def apply_filter(query_string, columns):
+def apply_filter(query_string, columns, recursive=True):
     global df
     result = None
     if not query_string:
@@ -127,8 +127,10 @@ def apply_filter(query_string, columns):
             query_string = query_string.replace("&", "|")
             return apply_filter(query_string, columns)
         else:
-            query_string = relax_filter(query_string)
-            return apply_filter(query_string, columns)
+            if recursive:
+                query_string = relax_filter(query_string)
+                logger.info("Relaxing filter and retrying...")
+                return apply_filter(query_string, columns, recursive=False)
     return csv_string
 
 
