@@ -38,7 +38,7 @@ Cliente: contains full names (last name first, separated by commas) or company n
 Tel1: client's phone number.
 Mail: client's email.
 Matricula: vehicle's license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
-Referencia: policy's reference number. 'Referencia' and 'Poliza' have the same meaning.
+Poliza: policy's reference number. Also known as 'Referencia'.
 Compañia: insurance company.
 Cobertura: vehicle's insurance coverage.
 Deducible: policy's deductible amount.
@@ -88,7 +88,7 @@ Cliente: contains full names (last name first, separated by commas) or company n
 Tel1: customer's phone number.
 Mail: customer's email.
 Matricula: vehicle's license plate.
-Referencia: policy's reference number. 'Referencia' and 'Poliza' have the same meaning.
+Poliza: policy's reference number. Also known as 'Referencia'.
 Compañia: insurance company.
 Cobertura: policy's insurance coverage.
 Deducible: policy's deductible amount.
