@@ -61,9 +61,11 @@ def make_fuzzy_regex(name):
     fuzzy_chars = []
     for char in name.lower():
         # Apply substitutions if defined, otherwise keep the original
-        new_char = substitutions.get(char, char)
-        fuzzy_chars.append(f"{new_char}.?")  # Add optional character after each letter
-    
+        if char not in ['.', ' ', '*']:
+            new_char = substitutions.get(char, char)
+            fuzzy_chars.append(f"{new_char}.?")  # Add optional character after each letter
+        else:
+            fuzzy_chars.append(char)    
     # Join with regex pattern and handle possible missing letters
     fuzzy_pattern = ''.join(fuzzy_chars)
     
