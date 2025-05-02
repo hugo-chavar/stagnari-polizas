@@ -50,7 +50,7 @@ class Item(BaseModel):
 @app.post("/q")
 def answer_question(item: Item):
     bot_response = get_response_to_message(item.message, item.number)
-    return {"received_message": f"OK.\n{bot_response}"}
+    return {"response": {bot_response}}
 
 @app.get("/client-history")
 def client_history_endpoint(item: Item):
