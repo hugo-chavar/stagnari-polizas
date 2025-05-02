@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, BackgroundTasks
 from twilio.rest import Client
 from pydantic import BaseModel
 from message_processor import get_response_to_message
-from chat_history_db import get_client_history, get_query_history
+from chat_history_db import get_client_history, get_query_history, cleanup_old_messages
 
 import os
 
@@ -61,3 +61,8 @@ def client_history_endpoint(item: Item):
 def query_history_endpoint(item: Item):
     history = get_query_history(item.message)
     return {"query_history": history}
+
+@app.post("/delete-history")
+def delete_history(item: Item):
+    cleanup_old_messages()
+    return {"status": "OK"}
