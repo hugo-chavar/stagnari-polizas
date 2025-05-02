@@ -38,8 +38,7 @@ def generate_query(question, client_number):
     prompt = prompts.get_query_prompt()
     surnames_prompt = get_surnames_prompt()
     messages = [
-        {"role": "system", "content": prompt},
-        {"role": "system", "content": surnames_prompt}
+        {"role": "system", "content": prompt}
     ]
     # Use the history messages, excluding the current question if already saved
     for role, content in history[:-1]:
