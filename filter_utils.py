@@ -33,13 +33,18 @@ def make_fuzzy_regex(name):
     # Define character substitutions for common mistakes
     substitutions = {
         'a': '[aeo]',
+        'á': '[aeo]',
         'e': '[aeo]',
+        'é': '[aeo]',
         'i': '[iyl1]',
+        'í': '[iyl1]',
         '1': '[il]',
         'o': '[aeo0]',
+        'ó': '[aeo0]',
         'x': '[xks]',
         '0': '[0o]',
         'u': '[uw]',
+        'ú': '[uw]',
         'w': '[uw]',
         'c': '[ckq]',
         'n': '[mnñ]',
