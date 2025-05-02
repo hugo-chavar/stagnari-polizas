@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8000",
-        "https://hugo-chavar.github.io/test_chat/"
+        "https://hugo-chavar.github.io"
         ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
