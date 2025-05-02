@@ -95,5 +95,7 @@ def relax_filter(query_string):
 
     new_names = make_fuzzy(names)
     new_query = replace_names_in_query(query_string, new_names)
+    new_query = new_query.replace("true", "True")
+    new_query = new_query.replace("false", "False")
     logger.info(f"Updated query: {new_query}")
     return new_query
