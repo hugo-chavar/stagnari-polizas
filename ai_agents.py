@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import prompts
 from chat_history_db import save_message, get_client_history, save_query, get_query_history
+from policy_data import get_surnames_prompt
 
 load_dotenv()
 
@@ -18,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 def clean_llm_json(raw_response: str) -> str:
     """Remove markdown-style triple backticks from LLM JSON output."""
-    logger.info(f"Raw response from LLM:\n{raw_response}")
+    # logger.info(f"Raw response from LLM:\n{raw_response}")
     lines = raw_response.strip().splitlines()
     # Remove lines that start or end code blocks
     lines = [line for line in lines if not line.strip().startswith("```")]
     clean_llm_json = "\n".join(lines)
-    logger.info(f"Cleaned LLM JSON:\n{clean_llm_json}")
+    # logger.info(f"Cleaned LLM JSON:\n{clean_llm_json}")
     return clean_llm_json
 
 
@@ -35,7 +36,11 @@ def generate_query(question, client_number):
     history = get_query_history(client_number, days_limit=2)
     
     prompt = prompts.get_query_prompt()
-    messages = [{"role": "system", "content": prompt}]
+    surnames_prompt = get_surnames_prompt()
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "system", "content": surnames_prompt}
+    ]
     # Use the history messages, excluding the current question if already saved
     for role, content in history[:-1]:
         messages.append({"role": role, "content": content})

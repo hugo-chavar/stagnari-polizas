@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -62,6 +63,44 @@ def load_csv_data():
     
     df = pd.read_csv(CSV_FILE_PATH)
 
+def remove_words(list, words):
+    pattern = r'\b(?:' + '|'.join(map(re.escape, words)) + r')\b'
+    cleaned_list = []
+    for text in list:
+        # Remove suffix and replace multiple spaces with a single space
+        cleaned_text = re.sub(r' +', ' ', re.sub(pattern, '', text).strip())
+        cleaned_list.append(cleaned_text)
+    return cleaned_list
+
+def get_surnames_prompt():
+    """
+    Return a prompt to fix spelling mistakes in surnames and company names.
+    """
+    global df
+    # Extract 'Cliente' column, ensuring non-null string values
+    client_series = df["Cliente"].dropna().astype(str)
+    # Remove content after first comma and trim
+    names = [s for s in client_series if "," in s]
+    surnames = [s.split(",")[0].strip().upper() for s in names]
+    all_surnames = [s for s in " ".join(surnames).split() if len(s) > 2]
+    companies = [s for s in client_series if "," not in s]
+    companies = [s.replace("(", "").replace(")", "") for s in companies]
+    companies = [s.replace('"', '').replace('.', ' ') for s in companies]
+
+    words_to_remove = ["SA", "SRL", "SAS", "LTDA", "SUC", "-", "CIA", "&"]
+
+    cleaned_companies = remove_words(companies, words_to_remove)
+    
+    sorted_surnames = sorted({s.upper() for s in all_surnames}, key=lambda s: s.upper())
+    companies_str = ",".join(cleaned_companies)
+    surnames_str = ",".join(sorted_surnames)
+    prompt = f"""Automatically fix user's spelling mistakes for the Cliente column. Example: If user asks for "Ruiz" create a query that includes "Ruis". This is the list of surnames and companies in the database:
+Companies: {companies_str}
+Surnames: {surnames_str}
+If you don't find a a good match relax the filter so it can catch more results. For example, if user asks for "Ruiz", use "Rui" to include more results.
+"""
+    
+    return prompt
 
 def apply_filter(query_string, columns):
     global df
