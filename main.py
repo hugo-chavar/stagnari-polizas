@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, Response, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from twilio.rest import Client
 from pydantic import BaseModel
 from message_processor import get_response_to_message
@@ -7,6 +8,14 @@ from chat_history_db import get_client_history, get_query_history, cleanup_old_m
 import os
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
