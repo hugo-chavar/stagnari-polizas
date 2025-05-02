@@ -72,6 +72,6 @@ def query_history_endpoint(item: Item):
     return {"query_history": history}
 
 @app.post("/delete-history")
-def delete_history(item: Item):
+def delete_history():
     cleanup_old_messages()
     return {"status": "OK"}
