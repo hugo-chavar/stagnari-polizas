@@ -55,7 +55,10 @@ def make_fuzzy_regex(name):
         'b': '[bv]',
         'v': '[vb]',
         'k': '[kcq]',
-        'q': '[qkc]'
+        'q': '[qkc]',
+        '’': '.?',
+        "'": '.?',
+        ' ': '.*',  # Allow any characters in between
     }
     
     fuzzy_chars = []
@@ -71,6 +74,7 @@ def make_fuzzy_regex(name):
     
     # Make beginning/end more flexible
     fuzzy_pattern = f"{fuzzy_pattern[:-2]}"  # Remove last .? to prevent too much fuzziness
+    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*')
     
     return fuzzy_pattern
 
