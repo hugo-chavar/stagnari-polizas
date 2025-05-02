@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from gsheets import export_sheet_to_csv
+from filter_utils import relax_filter
 
 UPDATE_INTERVAL_FILE = os.getenv('UPDATE_INTERVAL_FILE')
 UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL'))
@@ -118,6 +119,16 @@ def apply_filter(query_string, columns):
     csv_string = result.to_csv(index=False, lineterminator ='\n')
     logger.info("Filtered data:")
     logger.info(csv_string)
+    line_count = csv_string.count('\n') - 1
+    if line_count == 0:
+        logger.info("No rows found")
+        if "&" in query_string:
+            logger.info("Query string contains '&' - removing it")
+            query_string = query_string.replace("&", "|")
+            return apply_filter(query_string, columns)
+        else:
+            query_string = relax_filter(query_string)
+            return apply_filter(query_string, columns)
     return csv_string
 
 
