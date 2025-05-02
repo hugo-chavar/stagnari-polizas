@@ -5,7 +5,6 @@ from message_processor import get_response_to_message
 from chat_history_db import get_client_history, get_query_history
 
 import os
-import time
 
 app = FastAPI()
 
