@@ -106,11 +106,12 @@ If you don't find a a good match relax the filter so it can catch more results. 
 def apply_filter(query_string, columns, recursive=True):
     global df
     result = None
-    if not query_string:
-        if columns:
-            result = df[columns]
-        else:
-            result = df
+    if not query_string.strip():
+        raise ValueError("Too many records to filter. Please provide a more specific query.")
+        # if columns:
+        #     result = df[columns]
+        # else:
+        #     result = df
     else:
         if columns:
             result = df.query(query_string, engine='python')[columns]
@@ -127,7 +128,7 @@ def apply_filter(query_string, columns, recursive=True):
             query_string = query_string.replace("&", "|")
             return apply_filter(query_string, columns)
         else:
-            if recursive:
+            if recursive and '?' not in query_string:
                 query_string = relax_filter(query_string)
                 logger.info("Relaxing filter and retrying...")
                 return apply_filter(query_string, columns, recursive=False)
