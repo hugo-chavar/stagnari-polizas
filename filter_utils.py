@@ -79,16 +79,61 @@ def make_fuzzy_regex(name):
     
     # Make beginning/end more flexible
     fuzzy_pattern = f"{fuzzy_pattern[:-2]}"  # Remove last .? to prevent too much fuzziness
-    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*')
+    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*').replace('.*.?', '.*')
     
     return fuzzy_pattern
 
 def make_fuzzy(names):
     return [make_fuzzy_regex(name) for name in names]
 
+def relax_beginning_and_end(name):
+    word_list = re.findall(r'([a-zA-Z]+|[^a-zA-Z]+)', name)
+    vowels = {'a', 'e', 'i', 'o', 'u', '.', 'á', 'é', 'í', 'ó', 'ú', '?'}
+    processed_list = []
+    
+    for word in word_list:
+        # Only process words that contain letters (skip pure non-letter sequences)
+        if re.fullmatch(r'[a-zA-Z]+', word):
+            new_word = word
+            # Check beginning of word
+            if len(word) >= 2:
+                first_two = word[:2].lower()
+                if first_two[0] not in vowels and first_two[1] not in vowels:
+                    new_word = '.?' + word[1:]
+            
+            # Check end of word
+            if len(new_word) >= 2:
+                last_two = new_word[-2:].lower()
+                if last_two[0] not in vowels and last_two[1] not in vowels:
+                    new_word = new_word[:-1] + '.?'
+            
+            processed_list.append(new_word)
+        else:
+            processed_list.append(word)
+    
+    new_name = ''.join(processed_list)
+    new_name = new_name.replace('.?.*', '.*').replace('.*.?', '.*')
+    return new_name
 
-def relax_filter(query_string):
-    logger.info(f"Original query: {query_string}" )
+def relax_beginning_and_end_all(names):
+    return [relax_beginning_and_end(name) for name in names]
+
+
+def relax_filter_level1(query_string):
+    logger.info(f"Original query. Level 1: {query_string}" )
+
+    names = extract_names_from_query(query_string)
+    logger.info(f"Extracted names: {names}")
+
+    new_names = relax_beginning_and_end_all(names)
+    new_query = replace_names_in_query(query_string, new_names)
+    new_query = new_query.replace("true", "True")
+    new_query = new_query.replace("false", "False")
+    logger.info(f"Updated query: {new_query}")
+    return new_query
+
+def relax_filter_level2(query_string):
+    logger.info(f"Original query. Level 2: {query_string}" )
 
     names = extract_names_from_query(query_string)
     logger.info(f"Extracted names: {names}")

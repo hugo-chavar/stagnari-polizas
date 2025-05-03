@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from gsheets import export_sheet_to_csv
-from filter_utils import relax_filter
+from filter_utils import relax_filter_level1, relax_filter_level2
 
 UPDATE_INTERVAL_FILE = os.getenv('UPDATE_INTERVAL_FILE')
 UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL'))
@@ -103,7 +103,7 @@ If you don't find a a good match relax the filter so it can catch more results. 
     
     return prompt
 
-def apply_filter(query_string, columns, recursive=True):
+def apply_filter(query_string, columns, level=0):
     global df
     result = None
     if not query_string.strip():
@@ -128,10 +128,14 @@ def apply_filter(query_string, columns, recursive=True):
             query_string = query_string.replace("&", "|")
             return apply_filter(query_string, columns)
         else:
-            if recursive and '?' not in query_string:
-                query_string = relax_filter(query_string)
-                logger.info("Relaxing filter and retrying...")
-                return apply_filter(query_string, columns, recursive=False)
+            if level == 0:
+                logger.info("Relaxing filter and retrying level 1...")
+                query_string = relax_filter_level1(query_string)
+                return apply_filter(query_string, columns, level=1)
+            if level == 1:
+                query_string = relax_filter_level2(query_string)
+                logger.info("Relaxing filter and retrying level 2...")
+                return apply_filter(query_string, columns, level=2)
     return csv_string
 
 
