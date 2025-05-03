@@ -123,9 +123,9 @@ def apply_filter(query_string, columns, level=0):
     line_count = csv_string.count('\n') - 1
     if line_count == 0:
         logger.info("No rows found")
-        if "&" in query_string:
+        if "&" in query_string or " and " in query_string:
             logger.info("Query string contains '&' - removing it")
-            query_string = query_string.replace("&", "|")
+            query_string = query_string.replace("&", "|").replace(" and ", " or ")
             return apply_filter(query_string, columns)
         else:
             if level == 0:
