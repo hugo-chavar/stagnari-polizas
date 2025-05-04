@@ -95,23 +95,24 @@ def relax_beginning_and_end(name):
         # Only process words that contain letters (skip pure non-letter sequences)
         if re.fullmatch(r'[a-zA-Z]+', word):
             new_word = word
-            # Check beginning of word
             if len(word) >= 2:
+                # Check beginning of word
                 first_two = word[:2].lower()
                 if first_two[0] not in vowels and first_two[1] not in vowels:
                     new_word = '.?' + word[1:]
             
-            # Check end of word
-            if len(new_word) >= 2:
+                # Check end of word
                 last_two = new_word[-2:].lower()
                 if last_two[0] not in vowels and last_two[1] not in vowels:
+                    new_word = new_word[:-1] + '.?'
+                if last_two[1] == 'z':
                     new_word = new_word[:-1] + '.?'
             
             processed_list.append(new_word)
         else:
             processed_list.append(word)
     
-    new_name = ''.join(processed_list)
+    new_name = ''.join(processed_list) + '|' + ''.join(processed_list.reverse())
     new_name = new_name.replace('.?.*', '.*').replace('.*.?', '.*')
     return new_name
 
