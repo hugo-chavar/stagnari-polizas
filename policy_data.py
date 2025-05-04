@@ -123,19 +123,20 @@ def apply_filter(query_string, columns, level=0):
     line_count = csv_string.count('\n') - 1
     if line_count == 0:
         logger.info("No rows found")
-        if "&" in query_string or " and " in query_string:
-            logger.info("Query string contains '&' - removing it")
-            query_string = query_string.replace("&", "|").replace(" and ", " or ")
-            return apply_filter(query_string, columns)
-        else:
-            if level == 0:
-                logger.info("Relaxing filter and retrying level 1...")
-                query_string = relax_filter_level1(query_string)
-                return apply_filter(query_string, columns, level=1)
-            if level == 1:
-                query_string = relax_filter_level2(query_string)
-                logger.info("Relaxing filter and retrying level 2...")
-                return apply_filter(query_string, columns, level=2)
+
+        if level == 0:
+            logger.info("Relaxing filter and retrying level 1...")
+            query_string = relax_filter_level1(query_string)
+            return apply_filter(query_string, columns, level=1)
+        if level == 1:
+            query_string = relax_filter_level2(query_string)
+            logger.info("Relaxing filter and retrying level 2...")
+            return apply_filter(query_string, columns, level=2)
+        if level == 2:
+            if "&" in query_string or " and " in query_string:
+                logger.info("Query string contains '&' - removing it")
+                query_string = query_string.replace("&", "|").replace(" and ", " or ")
+                return apply_filter(query_string, columns)
     return csv_string
 
 
