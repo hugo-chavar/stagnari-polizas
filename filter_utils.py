@@ -111,8 +111,12 @@ def relax_beginning_and_end(name):
             processed_list.append(new_word)
         else:
             processed_list.append(word)
-    
-    new_name = ''.join(processed_list) + '|' + ''.join(processed_list.reverse())
+    try:
+        new_name = ''.join(processed_list) + '|' + ''.join(processed_list[::-1])
+    except Exception as e:
+        logger.info(f"Processed list: {processed_list}")
+        logger.error(f"Error processing name: {name}. Error: {e}")
+        raise e
     new_name = new_name.replace('.?.*', '.*').replace('.*.?', '.*')
     return new_name
 
