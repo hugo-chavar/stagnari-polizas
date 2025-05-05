@@ -10,26 +10,31 @@ def extract_strings_from_query(query_string, column_name):
     names = re.findall(pattern, query_string)
     return names
 
-def replace_names_in_query(query_string, new_names):
-    # Split the query string while preserving Cliente.contains() structure
-    parts = re.split(r"(Cliente\.fillna\(''\)\.str\.contains\('[^']*')", query_string)
+def replace_words_in_query(query_string, column_name, new_words):
+    # Split the query string while preserving column.contains() structure
+    pattern = rf"({re.escape(column_name)}\.fillna\(''\)\.str\.contains\('[^']*')"
+    parts = re.split(pattern, query_string)
     
-    # Find all the indices where Cliente.contains() appears
-    contains_indices = [i for i, part in enumerate(parts) 
-                       if part.startswith("Cliente.fillna('').str.contains('")]
+    # Find all indices where column.contains() appears
+    contains_indices = [
+        i for i, part in enumerate(parts) 
+        if part.startswith(f"{column_name}.fillna('').str.contains('")
+    ]
     
-    # Verify the number of names matches
-    if len(contains_indices) != len(new_names):
-        raise ValueError(f"Number of names to replace ({len(contains_indices)}) doesn't match new names provided ({len(new_names)})")
+    # Verify the number of words matches
+    if len(contains_indices) != len(new_words):
+        raise ValueError(
+            f"Expected {len(contains_indices)} words to replace, but got {len(new_words)}"
+        )
     
-    # Replace each Cliente.contains() with the new name
-    for idx, name in zip(contains_indices, new_names):
-        parts[idx] = f"Cliente.fillna('').str.contains('{name}'"
+    # Replace each occurrence with the new word
+    for idx, word in zip(contains_indices, new_words):
+        parts[idx] = f"{column_name}.fillna('').str.contains('{word}'"
     
     # Rebuild the query string
     return ''.join(parts)
 
-def make_fuzzy_regex(name):
+def make_string_fuzzy_regex(name):
     # Define character substitutions for common mistakes
     substitutions = {
         'a': '[aeo]',
@@ -83,8 +88,8 @@ def make_fuzzy_regex(name):
     
     return fuzzy_pattern
 
-def make_fuzzy(names):
-    return [make_fuzzy_regex(name) for name in names]
+def make_fuzzy_words(words):
+    return [make_string_fuzzy_regex(name) for name in words]
 
 def relax_beginning_and_end(name):
     word_list = re.findall(r'([a-zA-Z]+|[^a-zA-Z]+)', name)
@@ -127,21 +132,35 @@ def relax_beginning_and_end_all(names):
 def relax_cliente_filter_level1(query_string):
     logger.info(f"Original query. Level 1: {query_string}" )
 
-    names = extract_strings_from_query(query_string, "Cliente")
+    column_name = "Cliente"
+    names = extract_strings_from_query(query_string, column_name)
     logger.info(f"Extracted names: {names}")
 
     new_names = relax_beginning_and_end_all(names)
-    new_query = replace_names_in_query(query_string, new_names)
+    new_query = replace_words_in_query(query_string, column_name, new_names)
     logger.info(f"Updated query: {new_query}")
     return new_query
 
 def relax_cliente_filter_level2(query_string):
     logger.info(f"Original query. Level 2: {query_string}" )
 
-    names = extract_strings_from_query(query_string, "Cliente")
+    column_name = "Cliente"
+    names = extract_strings_from_query(query_string, column_name)
     logger.info(f"Extracted names: {names}")
 
-    new_names = make_fuzzy(names)
-    new_query = replace_names_in_query(query_string, new_names)
+    new_names = make_fuzzy_words(names)
+    new_query = replace_words_in_query(query_string, column_name, new_names)
+    logger.info(f"Updated query: {new_query}")
+    return new_query
+
+def relax_telefono_filter(query_string):
+    logger.info(f"Original query Tel1: {query_string}" )
+
+    column_name = "Tel1"
+    numbers = extract_strings_from_query(query_string, column_name)
+    logger.info(f"Extracted phone numbers: {numbers}")
+
+    new_names = make_fuzzy_words(numbers)
+    new_query = replace_words_in_query(query_string, column_name, new_names)
     logger.info(f"Updated query: {new_query}")
     return new_query

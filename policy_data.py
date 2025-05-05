@@ -132,13 +132,15 @@ def apply_filter(query_string, columns, level=0):
         logger.info("No rows found")
 
         if level == 0:
-            logger.info("Relaxing filter and retrying level 1...")
-            query_string = relax_cliente_filter_level1(query_string)
-            return apply_filter(query_string, columns, level=1)
+            if "Cliente." in query_string:
+                logger.info("Relaxing cliente filter and retrying level 1...")
+                query_string = relax_cliente_filter_level1(query_string)
+                return apply_filter(query_string, columns, level=1)
         if level == 1:
-            query_string = relax_cliente_filter_level2(query_string)
-            logger.info("Relaxing filter and retrying level 2...")
-            return apply_filter(query_string, columns, level=2)
+            if "Cliente." in query_string:
+                logger.info("Relaxing cliente filter and retrying level 2...")
+                query_string = relax_cliente_filter_level2(query_string)
+                return apply_filter(query_string, columns, level=2)
         if level == 2:
             if "&" in query_string or " and " in query_string:
                 logger.info("Query string contains '&' - removing it")
