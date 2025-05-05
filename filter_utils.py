@@ -4,9 +4,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def extract_names_from_query(query_string):
-    # This pattern matches only Cliente.contains('...')
-    pattern = r"Cliente\.fillna\(''\)\.str\.contains\('([^']*)'"
+def extract_strings_from_query(query_string, column_name):
+    # Pattern matches: column_name.fillna('').str.contains('...')
+    pattern = rf"{column_name}\.fillna\(''\)\.str\.contains\('([^']*)'"
     names = re.findall(pattern, query_string)
     return names
 
@@ -124,10 +124,10 @@ def relax_beginning_and_end_all(names):
     return [relax_beginning_and_end(name) for name in names]
 
 
-def relax_filter_level1(query_string):
+def relax_cliente_filter_level1(query_string):
     logger.info(f"Original query. Level 1: {query_string}" )
 
-    names = extract_names_from_query(query_string)
+    names = extract_strings_from_query(query_string, "Cliente")
     logger.info(f"Extracted names: {names}")
 
     new_names = relax_beginning_and_end_all(names)
@@ -135,10 +135,10 @@ def relax_filter_level1(query_string):
     logger.info(f"Updated query: {new_query}")
     return new_query
 
-def relax_filter_level2(query_string):
+def relax_cliente_filter_level2(query_string):
     logger.info(f"Original query. Level 2: {query_string}" )
 
-    names = extract_names_from_query(query_string)
+    names = extract_strings_from_query(query_string, "Cliente")
     logger.info(f"Extracted names: {names}")
 
     new_names = make_fuzzy(names)
