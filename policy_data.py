@@ -113,6 +113,8 @@ def apply_filter(query_string, columns, level=0):
         # else:
         #     result = df
     else:
+        query_string = query_string.replace("true", "True")
+        query_string = query_string.replace("false", "False")
         if columns:
             try:
                 i = columns.index("Referencia")
