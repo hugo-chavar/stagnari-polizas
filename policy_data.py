@@ -114,6 +114,11 @@ def apply_filter(query_string, columns, level=0):
         #     result = df
     else:
         if columns:
+            try:
+                i = columns.index("Referencia")
+                columns[i] = "Poliza"
+            except ValueError:
+                pass
             result = df.query(query_string, engine='python')[columns]
         else:
             result = df.query(query_string, engine='python')
