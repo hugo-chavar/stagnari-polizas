@@ -1,5 +1,6 @@
 .env
 test*/
+test*
 data/
 venv*/
 __pycache__/

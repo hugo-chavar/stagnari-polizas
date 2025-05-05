@@ -31,7 +31,7 @@ In the previous case we are not filtering any record, so just return empty query
 Otherwise, if a filter needs to be applied, use fillna to avoid NaN:
 "Poliza.fillna('').str.contains('A12', case=False, regex=True)"
 
-### Hard Rule 1: **Use previous Q&A**: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query.
+### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query.
 
 DataFrame columns are: Matricula, Poliza, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. Also remember that the user could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account.
@@ -43,7 +43,7 @@ Compañia: insurance company.
 Cobertura: vehicle's insurance coverage.
 Deducible: policy's deductible amount.
 Vencimiento: policy's expiration date. Format is DD/MM/YYYY.
-Marca: vehicle's brand. If user provides brands in short form like B.M.W. or VW provide query like this: Marca.str.contains(r'(?=.*V)(?=.*W).*', case=False, regex=True) to capture all the variations. Also fix spelling mistakes like Toyta adding wildcards like Toy*ta.
+Marca: vehicle's brand.
 Modelo: vehicle's model.
 Combustible: vehicle's fuel type.
 Año: vehicle's year.
@@ -93,7 +93,7 @@ Compañia: insurance company.
 Cobertura: policy's insurance coverage.
 Deducible: policy's deductible amount.
 Vencimiento: policy's expiration date. Format is DD/MM/YYYY.
-Marca: vehicle's brand. If user provides brands with periods like this B.M.W. remove periods and leave BMW. Also fix spelling mistakes like Toyta to TOYOTA.
+Marca: vehicle's brand.
 Modelo: vehicle's model.
 Combustible: vehicle's fuel type.
 Año: vehicle's year.

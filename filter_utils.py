@@ -200,3 +200,15 @@ def relax_telefono_filter(query_string):
     new_query = replace_words_in_query(query_string, column_name, new_numbers)
     logger.info(f"Updated query: {new_query}")
     return new_query
+
+def relax_marca_filter(query_string):
+    logger.info(f"Original query. Level 2: {query_string}" )
+
+    column_name = "Marca"
+    words = extract_strings_from_query(query_string, column_name)
+    logger.info(f"Extracted names: {words}")
+
+    new_words = make_fuzzy_words(words)
+    new_query = replace_words_in_query(query_string, column_name, new_words)
+    logger.info(f"Updated query: {new_query}")
+    return new_query
