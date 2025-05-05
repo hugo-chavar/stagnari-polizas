@@ -20,7 +20,8 @@ last_update = None
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format="%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",  # Controls the non-millisecond part
 )
 
 def update_interval_has_passed():
@@ -117,6 +118,7 @@ def apply_filter(query_string, columns, level=0):
         query_string = query_string.replace("false", "False")
         if columns:
             try:
+                # Fix old error
                 i = columns.index("Referencia")
                 columns[i] = "Poliza"
             except ValueError:
