@@ -71,12 +71,17 @@ def make_string_fuzzy_regex(name):
         '’': '.?',
         "'": '.?',
         ' ': '.*',  # Allow any characters in between
+        '.': '.*',
+        '_': '.*',
+        '-': '.*',
+        '(': '.*',
+        ')': '.*',
     }
     
     fuzzy_chars = []
     for char in name.lower():
         # Apply substitutions if defined, otherwise keep the original
-        if char not in ['.', ' ', '*', '?']:
+        if char not in ['*', '?']:
             new_char = substitutions.get(char, char)
             fuzzy_chars.append(f"{new_char}.?")  # Add optional character after each letter
         else:
@@ -86,7 +91,7 @@ def make_string_fuzzy_regex(name):
     
     # Make beginning/end more flexible
     fuzzy_pattern = f"{fuzzy_pattern[:-2]}"  # Remove last .? to prevent too much fuzziness
-    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*').replace('.*.?', '.*')
+    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*').replace('.*.?', '.*').replace('.*.*', '.*').replace('**', '*')
     
     return fuzzy_pattern
 
