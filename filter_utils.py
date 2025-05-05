@@ -80,10 +80,16 @@ def make_string_fuzzy_regex(name):
     
     fuzzy_chars = []
     for char in name.lower():
-        # Apply substitutions if defined, otherwise keep the original
         if char not in ['*', '?']:
-            new_char = substitutions.get(char, char)
-            fuzzy_chars.append(f"{new_char}.?")  # Add optional character after each letter
+            # Replace non-letter symbols with '.*' if not in substitutions
+            if char not in substitutions:
+                if not char.isalnum():
+                    fuzzy_chars.append('.*')
+                else:
+                    fuzzy_chars.append(f"{char}.?")
+            else:
+                new_char = substitutions.get(char, char)
+                fuzzy_chars.append(f"{new_char}.?")  # Add optional character after each letter
         else:
             fuzzy_chars.append(char)    
     # Join with regex pattern and handle possible missing letters
