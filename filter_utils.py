@@ -32,7 +32,9 @@ def replace_words_in_query(query_string, column_name, new_words):
         parts[idx] = f"{column_name}.fillna('').str.contains('{word}'"
     
     # Rebuild the query string
-    return ''.join(parts)
+    new_query_string = ''.join(parts).replace("regex=False", "regex=True")
+    
+    return new_query_string
 
 def make_string_fuzzy_regex(name):
     # Define character substitutions for common mistakes
@@ -91,7 +93,30 @@ def make_string_fuzzy_regex(name):
 def make_fuzzy_words(words):
     return [make_string_fuzzy_regex(name) for name in words]
 
-def relax_beginning_and_end(name):
+def make_number_fuzzy_regex(string_number):
+    # Split into numeric segments (groups of digits) and non-numeric separators
+    segments = re.split(r'([0-9]+)', string_number)
+    
+    # Process each segment: remove leading zeros from numeric segments
+    processed_segments = []
+    for segment in segments:
+        if segment.isdigit():
+            # Remove leading zeros and keep at least one digit (in case of all zeros)
+            processed_segment = segment.lstrip('0') or '0'
+            processed_segments.append(processed_segment)
+        else:
+            # For non-digit segments, replace with .*
+            processed_segments.append('.*')
+    
+    # Combine the processed segments
+    fuzzy_number = ''.join(processed_segments)
+    return fuzzy_number
+    
+
+def make_fuzzy_numbers(words):
+    return [make_number_fuzzy_regex(name) for name in words]
+
+def relax_string_beginning_and_end(name):
     word_list = re.findall(r'([a-zA-Z]+|[^a-zA-Z]+)', name)
     vowels = {'a', 'e', 'i', 'o', 'u', '.', 'á', 'é', 'í', 'ó', 'ú', '?'}
     processed_list = []
@@ -126,7 +151,7 @@ def relax_beginning_and_end(name):
     return new_name
 
 def relax_beginning_and_end_all(names):
-    return [relax_beginning_and_end(name) for name in names]
+    return [relax_string_beginning_and_end(name) for name in names]
 
 
 def relax_cliente_filter_level1(query_string):
@@ -160,7 +185,7 @@ def relax_telefono_filter(query_string):
     numbers = extract_strings_from_query(query_string, column_name)
     logger.info(f"Extracted phone numbers: {numbers}")
 
-    new_names = make_fuzzy_words(numbers)
-    new_query = replace_words_in_query(query_string, column_name, new_names)
+    new_numbers = make_fuzzy_numbers(numbers)
+    new_query = replace_words_in_query(query_string, column_name, new_numbers)
     logger.info(f"Updated query: {new_query}")
     return new_query

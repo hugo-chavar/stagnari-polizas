@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from gsheets import export_sheet_to_csv
-from filter_utils import relax_cliente_filter_level1, relax_cliente_filter_level2
+from filter_utils import relax_cliente_filter_level1, relax_cliente_filter_level2, relax_telefono_filter
 
 UPDATE_INTERVAL_FILE = os.getenv('UPDATE_INTERVAL_FILE')
 UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL'))
@@ -137,7 +137,10 @@ def apply_filter(query_string, columns, level=0):
             if "Cliente." in query_string:
                 logger.info("Relaxing cliente filter and retrying level 1...")
                 query_string = relax_cliente_filter_level1(query_string)
-                return apply_filter(query_string, columns, level=1)
+            if "Tel1." in query_string:
+                logger.info("Relaxing telefono filter and retrying level 1...")
+                query_string = relax_telefono_filter(query_string)
+            return apply_filter(query_string, columns, level=1)
         if level == 1:
             if "Cliente." in query_string:
                 logger.info("Relaxing cliente filter and retrying level 2...")
