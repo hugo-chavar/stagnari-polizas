@@ -74,7 +74,9 @@ def generate_response(question, csv, client_number):
     for role, content in history[:-1]:  # exclude the current question which is already in history
         messages.append({"role": role, "content": content})
     
-    messages.append({"role": "system", "content": f"CSV data: {csv}"})
+    line_count = csv.count('\n') - 1
+    has_rows  = line_count > 0
+    messages.append({"role": "system", "content": f"CSV data: {csv}" if has_rows else "CSV data: EMPTY"})
     # Add the current question (in case it wasn't saved yet)
     messages.append({"role": "user", "content": question})
     

@@ -130,7 +130,8 @@ def apply_filter(query_string, columns, level=0):
     logger.info("Filtered data:")
     logger.info(csv_string)
     line_count = csv_string.count('\n') - 1
-    if line_count == 0:
+    has_rows  = line_count > 0
+    if not has_rows:
         logger.info("No rows found")
 
         if level == 0:

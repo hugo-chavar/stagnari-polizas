@@ -3,12 +3,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def remove_spanish_accents(text):
+    accents_mapping = {
+        'á': 'a',
+        'é': 'e',
+        'í': 'i',
+        'ó': 'o',
+        'ú': 'u',
+        'ü': 'u',
+    }
+    for accented, unaccented in accents_mapping.items():
+        text = text.replace(accented, unaccented)
+    return text
 
 def extract_strings_from_query(query_string, column_name):
     # Pattern matches: column_name.fillna('').str.contains('...')
     pattern = rf"{column_name}\.fillna\(''\)\.str\.contains\('([^']*)'"
     names = re.findall(pattern, query_string)
-    return names
+    return [remove_spanish_accents(name) for name in names]
 
 def replace_words_in_query(query_string, column_name, new_words):
     # Split the query string while preserving column.contains() structure
@@ -40,18 +52,13 @@ def make_string_fuzzy_regex(name):
     # Define character substitutions for common mistakes
     substitutions = {
         'a': '[aeo]',
-        'á': '[aeo]',
         'e': '[aeo]',
-        'é': '[aeo]',
         'i': '[iyl1]',
-        'í': '[iyl1]',
         '1': '[il]',
         'o': '[aeo0]',
-        'ó': '[aeo0]',
         'x': '[xks]',
         '0': '[0o]',
         'u': '[uw]',
-        'ú': '[uw]',
         'w': '[uw]',
         'c': '[ckq]',
         'n': '[mnñ]',
