@@ -92,7 +92,6 @@ def generate_response(question, csv, client_number, negative_response):
         model_response = response.choices[0].message.content
         # Clean the response to remove any unwanted formatting
         model_response = model_response.replace("**", "*").strip()
-        logger.info(f"Final response:\n{model_response}")
         
         # Save the assistant's response to the database
         save_message(client_number, "assistant", model_response)
