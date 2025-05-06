@@ -60,38 +60,44 @@ def generate_query(question, client_number):
 
 
 def generate_response(question, csv, client_number):
-    # Save the new question to the database
-    save_message(client_number, "user", question)
-    
-    # Get the conversation history from the last 2 days
-    history = get_client_history(client_number, days_limit=2)
-    
-    # Prepare the messages for the API call
-    prompt = prompts.get_response_prompt()
-    messages = [{"role": "system", "content": prompt}]
-    
-    # Add all previous messages to the context
-    for role, content in history[:-1]:  # exclude the current question which is already in history
-        messages.append({"role": role, "content": content})
-    
     line_count = csv.count('\n') - 1
     has_rows  = line_count > 0
-    messages.append({"role": "system", "content": f"CSV data: {csv}" if has_rows else "CSV data: EMPTY"})
-    # Add the current question (in case it wasn't saved yet)
-    messages.append({"role": "user", "content": question})
-    
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        stream=False
-    )
+    if has_rows:
+        csv = csv.replace("\n", " ").replace(",", ",\n")
+        # Save the new question to the database
+        save_message(client_number, "user", question)
+        
+        # Get the conversation history from the last 2 days
+        history = get_client_history(client_number, days_limit=2)
+        
+        # Prepare the messages for the API call
+        prompt = prompts.get_response_prompt()
+        messages = [{"role": "system", "content": prompt}]
+        
+        # Add all previous messages to the context
+        for role, content in history[:-1]:  # exclude the current question which is already in history
+            messages.append({"role": role, "content": content})
+        
+        
+        messages.append({"role": "system", "content": f"CSV data: {csv}" if has_rows else "CSV data: EMPTY"})
+        # Add the current question (in case it wasn't saved yet)
+        messages.append({"role": "user", "content": question})
+        
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            stream=False
+        )
 
-    model_response = response.choices[0].message.content
-    # Clean the response to remove any unwanted formatting
-    model_response = model_response.replace("**", "*").strip()
-    logger.info(f"Final response:\n{model_response}")
-    
-    # Save the assistant's response to the database
-    save_message(client_number, "assistant", model_response)
-    
-    return model_response
+        model_response = response.choices[0].message.content
+        # Clean the response to remove any unwanted formatting
+        model_response = model_response.replace("**", "*").strip()
+        logger.info(f"Final response:\n{model_response}")
+        
+        # Save the assistant's response to the database
+        save_message(client_number, "assistant", model_response)
+        
+        return model_response
+    else:
+        logger.info("No data found for the query.")
+        return "No se encontraron resultados para tu consulta."
