@@ -59,7 +59,7 @@ def generate_query(question, client_number):
     return json.loads(clean_llm_json(model_response))
 
 
-def generate_response(question, csv, client_number):
+def generate_response(question, csv, client_number, negative_response):
     line_count = csv.count('\n') - 1
     has_rows  = line_count > 0
     if has_rows:
@@ -100,4 +100,4 @@ def generate_response(question, csv, client_number):
         return model_response
     else:
         logger.info("No data found for the query.")
-        return "No se encontraron resultados para tu consulta."
+        return negative_response

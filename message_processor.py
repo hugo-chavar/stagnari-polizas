@@ -23,6 +23,7 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
         # If the model didn't understand the message, return the follow up message
         return filter["?"]
     filtered_data = ""
+    negative_response = filter.get("n") or "Lo siento, no tengo información sobre eso."
     if "qs" in filter and "c" in filter:
         try:
             rows_filter = filter["qs"]
@@ -33,4 +34,4 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
             return f"Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
-    return generate_response(incoming_message, filtered_data, to_number)
+    return generate_response(incoming_message, filtered_data, to_number, negative_response)

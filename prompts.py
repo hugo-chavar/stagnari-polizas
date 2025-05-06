@@ -15,10 +15,11 @@ Output your response as a JSON object in this way:
 {
   "qs": "...",
   "c": ["col1", "col2", ...],
-  "p": true|false
+  "p": true|false,
+  "n": "No se encontraron pólizas ... en los datos disponibles."
 }
 
-Where qs means query string, c means columns and p is true if you use some information from previous user's questions.
+Where qs means query string, c means columns, p is true if you use some information from previous user's questions and n a default message in Spanish to inform the user when we don't find it in the dataset.
 
 I will use to filter data in this way df.query(query_string, engine='python')[columns]
 
