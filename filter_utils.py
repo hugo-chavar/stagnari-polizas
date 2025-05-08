@@ -16,11 +16,48 @@ def remove_spanish_accents(text):
         text = text.replace(accented, unaccented)
     return text
 
+def clean_pattern_string(input_string):
+    """
+    Replaces non-alphanumeric characters (except '.', '|', '&', '*') with '.*'
+    and then consolidates consecutive '.*' patterns.
+    
+    Args:
+        input_string (str): The string to be processed
+        
+    Returns:
+        str: The processed string with special characters replaced and patterns cleaned
+    """
+    # Replace non-alphanumeric characters (except allowed ones) with '.*'
+    pattern = r"[^\w\.\|\&\*]"
+    processed = re.sub(pattern, '.*', input_string)
+    
+    # Clean consecutive '.*' patterns
+    processed = re.sub(r'(\.\*)+', '.*', processed)
+    
+    return processed
+
+def clean_string(input_string):
+    result = remove_spanish_accents(input_string)
+    result = clean_pattern_string(result)
+    return result
+
+def clean_fuzzy_pattern(fuzzy_pattern):
+    """
+    Cleans a fuzzy pattern by consolidating consecutive wildcards.
+    Replaces combinations of .?, .*, etc. with their most efficient form.
+    """
+    # Combine all replacements into a single regex substitution
+    return re.sub(
+        r'(\.\??\*?|\*\.?\*?|\?\.?\*?)+', 
+        lambda m: '.*' if '*' in m.group(0) else '.?', 
+        fuzzy_pattern
+    )
+
 def extract_strings_from_query(query_string, column_name):
     # Pattern matches: column_name.fillna('').str.contains('...')
     pattern = rf"{column_name}\.fillna\(''\)\.str\.contains\('([^']*)'"
     names = re.findall(pattern, query_string)
-    return [remove_spanish_accents(name) for name in names]
+    return [clean_string(name) for name in names]
 
 def replace_words_in_query(query_string, column_name, new_words):
     # Split the query string while preserving column.contains() structure
@@ -87,7 +124,7 @@ def make_string_fuzzy_regex(name):
     
     fuzzy_chars = []
     for char in name.lower():
-        if char not in ['*', '?']:
+        if char not in ['*', '?', '|', '&']:
             # Replace non-letter symbols with '.*' if not in substitutions
             if char not in substitutions:
                 if not char.isalnum():
@@ -104,9 +141,8 @@ def make_string_fuzzy_regex(name):
     
     # Make beginning/end more flexible
     fuzzy_pattern = f"{fuzzy_pattern[:-2]}"  # Remove last .? to prevent too much fuzziness
-    fuzzy_pattern = fuzzy_pattern.replace('.?.*', '.*').replace('.*.?', '.*').replace('.*.*', '.*').replace('**', '*')
     
-    return fuzzy_pattern
+    return clean_fuzzy_pattern(fuzzy_pattern)
 
 def make_fuzzy_words(words):
     return [make_string_fuzzy_regex(name) for name in words]
