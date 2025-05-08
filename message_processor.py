@@ -23,6 +23,7 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
         # If the model didn't understand the message, return the follow up message
         return filter["?"]
     filtered_data = ""
+    incoming_message = filter.get("r") or incoming_message
     negative_response = filter.get("n") or "Lo siento, no tengo información sobre eso."
     if "qs" in filter and "c" in filter:
         try:
