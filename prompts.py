@@ -69,7 +69,9 @@ your response will be:
   "f": true
 }
 
-If the user only said hello or the question is not understandable, deduce what they are trying to find out and politely ask for clarification. In that case your response will be:
+If the user only said hello or the question is not understandable, deduce what they are trying to find out and politely ask for clarification.
+Also, if user asks for the SOA (Certificado de Seguro Obligatorio Automotores) respond that PDF file download is not yet implemented.
+In that case your response will be:
 {
   "?": "..."
 }
