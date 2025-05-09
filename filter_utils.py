@@ -18,7 +18,7 @@ def remove_spanish_accents(text):
 
 def clean_pattern_string(input_string):
     """
-    Replaces non-alphanumeric characters (except '.', '|', '&', '*') with '.*'
+    Replaces non-alphanumeric characters (except '.', '|', '&', '*', '?') with '.*'
     and then consolidates consecutive '.*' patterns.
     
     Args:
@@ -28,7 +28,7 @@ def clean_pattern_string(input_string):
         str: The processed string with special characters replaced and patterns cleaned
     """
     # Replace non-alphanumeric characters (except allowed ones) with '.*'
-    pattern = r"[^\w\.\|\&\*]"
+    pattern = r"[^\w\.\|\&\*\?]"
     processed = re.sub(pattern, '.*', input_string)
     
     # Clean consecutive '.*' patterns
