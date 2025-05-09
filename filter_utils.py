@@ -196,13 +196,15 @@ def relax_string_beginning_and_end(name):
         else:
             processed_list.append(word)
     try:
-        new_name = ''.join(processed_list) + '|' + ''.join(processed_list[::-1])
+        new_name = ''.join(processed_list)
+        if '|' not in new_name:
+            new_name = new_name + '|' + ''.join(processed_list[::-1])
     except Exception as e:
         logger.info(f"Processed list: {processed_list}")
         logger.error(f"Error processing name: {name}. Error: {e}")
         raise e
-    new_name = new_name.replace('.?.*', '.*').replace('.*.?', '.*')
-    return new_name
+    
+    return clean_fuzzy_pattern(new_name)
 
 def relax_beginning_and_end_all(names):
     return [relax_string_beginning_and_end(name) for name in names]
