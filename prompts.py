@@ -26,7 +26,7 @@ Output your response as a JSON object in this way:
 | c   | Columns |
 | p   | Boolean indicating if using info from previous questions |
 | n   | Default "not found" message in Spanish |
-| r   | Cleaned/rephrased context-free user's question so another model can understand it |
+| r   | Rephrase the user's question while preserving its original meaning and incorporating relevant context from previous interactions to maintain continuity in the conversation.|
 
 I will use to filter data in this way df.query(query_string, engine='python')[columns]
 
