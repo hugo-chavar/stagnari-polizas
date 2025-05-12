@@ -6,6 +6,7 @@ from message_processor import get_response_to_message
 from chat_history_db import get_client_history, get_query_history, cleanup_old_messages
 
 import os
+import time
 
 app = FastAPI()
 
@@ -31,13 +32,18 @@ def send_delayed_response(user_number: str, user_message: str):
     try:
 
         response_text = get_response_to_message(user_message, user_number)
+        all_messages = [x.strip() for x in response_text.split("____") if x.strip()]
 
-        # Send actual response
-        client.messages.create(
-            from_=TWILIO_PHONE_NUMBER,
-            to=user_number,
-            body=response_text
-        )
+        for message in all_messages:
+            # Send the message with a delay
+            client.messages.create(
+                from_=TWILIO_PHONE_NUMBER,
+                to=user_number,
+                body=message
+            )
+            print(f"Sent message: {message} to {user_number}", flush=True)
+            # Add a delay of 5 seconds between messages
+            time.sleep(5)
     except Exception as e:
         print(f"Error sending delayed message: {e}", flush=True)
 
