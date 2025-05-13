@@ -4,6 +4,7 @@ from twilio.rest import Client
 from pydantic import BaseModel
 from message_processor import get_response_to_message
 from chat_history_db import get_client_history, get_query_history, cleanup_old_messages
+from split_messages import split_long_message
 
 import os
 import time
@@ -32,7 +33,7 @@ def send_delayed_response(user_number: str, user_message: str):
     try:
 
         response_text = get_response_to_message(user_message, user_number)
-        all_messages = [x.strip() for x in response_text.split("____") if x.strip()]
+        all_messages = split_long_message(response_text)
 
         for message in all_messages:
             # Send the message with a delay
