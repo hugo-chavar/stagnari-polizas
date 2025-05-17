@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Request, Response, BackgroundTasks
+from fastapi import FastAPI, Request, Response, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from twilio.rest import Client
 from pydantic import BaseModel
+from auth import verify_admin
 from message_processor import get_response_to_message
 from chat_history_db import get_client_history, get_query_history, cleanup_old_messages
 from split_messages import split_long_message
@@ -10,6 +12,7 @@ import os
 import time
 
 app = FastAPI()
+security = HTTPBasic()
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,13 +61,16 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
 
     return Response(status_code=200)
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
-
 class Item(BaseModel):
+    user_name: str
+    user_password: str
     message: str
     number: str
+
+@app.get("/")
+def read_root(credentials: HTTPBasicCredentials = Depends(security)):
+    if verify_admin(credentials):
+        return {"message": "Hello Admin"}
 
 @app.post("/q")
 def answer_question(item: Item):
