@@ -37,6 +37,14 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_client_query_timestamp 
         ON query_history (client_number, timestamp)
         """)
+        # User table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user (
+            client_number TEXT,
+            name TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
         conn.commit()
 
 def save_message(client_number: str, role: str, content: str):
@@ -105,6 +113,27 @@ def cleanup_old_messages(days_to_keep: int = 2):
         )
         conn.commit()
         return cursor.rowcount  # Returns number of deleted rows
+
+def add_user(client_number: str, name: str):
+    """Add a new user to the database"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO user (client_number, name) VALUES (?, ?)",
+            (client_number, name)
+        )
+        conn.commit()
+        
+def get_user(client_number: str) -> str:
+    """Retrieve user information"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT name FROM user WHERE client_number = ?",
+            (client_number,)
+        )
+        result = cursor.fetchone()
+        return result[0] if result else None
 
 # Initialize the database when this module is imported
 init_db()
