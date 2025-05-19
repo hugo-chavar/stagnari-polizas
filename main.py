@@ -40,16 +40,19 @@ def send_delayed_response(user_number: str, user_message: str):
 
         for message in all_messages:
             # Send the message with a delay
-            client.messages.create(
-                from_=TWILIO_PHONE_NUMBER,
-                to=user_number,
-                body=message
-            )
-            print(f"Sent message: {message} to {user_number}", flush=True)
+            send_message(user_number, message)
             # Add a delay of 5 seconds between messages
             time.sleep(5)
     except Exception as e:
         print(f"Error sending delayed message: {e}", flush=True)
+
+def send_message(user_number, message):
+    client.messages.create(
+                from_=TWILIO_PHONE_NUMBER,
+                to=user_number,
+                body=message
+            )
+    print(f"Sent message: {message} to {user_number}", flush=True)
 
 @app.post("/webhook")
 async def webhook(request: Request, background_tasks: BackgroundTasks):
