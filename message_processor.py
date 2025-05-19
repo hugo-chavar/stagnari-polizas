@@ -34,7 +34,7 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
             filtered_data = apply_filter(rows_filter, columns_filter)
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
-            return f"Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
+            return f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
 
     response = generate_response(incoming_message, filtered_data, to_number, negative_response)
     logger.info(f"Final response:\n{response}")

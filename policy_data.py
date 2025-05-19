@@ -108,7 +108,7 @@ def apply_filter(query_string, columns, level=0):
     global df
     result = None
     if not query_string.strip():
-        raise ValueError("Too many records to filter. Please provide a more specific query.")
+        raise ValueError("Error: Too many records to filter. Please provide a more specific query.")
         # if columns:
         #     result = df[columns]
         # else:
