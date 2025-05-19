@@ -143,7 +143,7 @@ def get_all_users() -> List[str]:
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT name, client_number FROM user")
-        return [row[0] for row in cursor.fetchall()]
+        return cursor.fetchall()
 
 # Initialize the database when this module is imported
 init_db()
