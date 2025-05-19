@@ -62,8 +62,6 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
     return Response(status_code=200)
 
 class Item(BaseModel):
-    user_name: str
-    user_password: str
     message: str
     number: str
 
