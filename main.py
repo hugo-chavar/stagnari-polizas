@@ -108,7 +108,7 @@ class User(BaseModel):
     number: str
 
 @app.post("/add-user")
-def add_user(user: User, credentials: HTTPBasicCredentials = Depends(security)):
+def add_authorized_user(user: User, credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
         if add_user(user.number, user.name):
             return {"status": "OK"}
