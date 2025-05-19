@@ -114,8 +114,10 @@ def cleanup_old_messages(days_to_keep: int = 2):
         conn.commit()
         return cursor.rowcount  # Returns number of deleted rows
 
-def add_user(client_number: str, name: str):
+def add_user(client_number: str, name: str) -> bool:
     """Add a new user to the database"""
+    if get_user(client_number) is not None:
+        return False
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -123,6 +125,7 @@ def add_user(client_number: str, name: str):
             (client_number, name)
         )
         conn.commit()
+        return True
         
 def get_user(client_number: str) -> str:
     """Retrieve user information"""
@@ -134,6 +137,13 @@ def get_user(client_number: str) -> str:
         )
         result = cursor.fetchone()
         return result[0] if result else None
+
+def get_all_users() -> List[str]:
+    """Retrieve all users"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, client_number FROM user")
+        return [row[0] for row in cursor.fetchall()]
 
 # Initialize the database when this module is imported
 init_db()

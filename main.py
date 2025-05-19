@@ -5,7 +5,7 @@ from twilio.rest import Client
 from pydantic import BaseModel
 from auth import verify_admin
 from message_processor import get_response_to_message
-from chat_history_db import get_client_history, get_query_history, cleanup_old_messages, add_user, get_user
+from chat_history_db import get_client_history, get_query_history, cleanup_old_messages, add_user, get_user, get_all_users
 from split_messages import split_long_message
 
 import os
@@ -108,7 +108,14 @@ class User(BaseModel):
     number: str
 
 @app.post("/add-user")
-def delete_history(user: User, credentials: HTTPBasicCredentials = Depends(security)):
+def add_user(user: User, credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
-        add_user(user.number, user.name)
-        return {"status": "OK"}
+        if add_user(user.number, user.name):
+            return {"status": "OK"}
+        return {"status": "El usuario ya existe"}
+
+@app.get("/get-users")
+def get_users(credentials: HTTPBasicCredentials = Depends(security)):
+    if verify_admin(credentials):
+        users = get_all_users()
+        return {"users": users}
