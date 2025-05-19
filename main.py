@@ -111,8 +111,8 @@ class User(BaseModel):
 def add_authorized_user(user: User, credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
         if add_user(user.number, user.name):
-            return {"status": "OK"}
-        return {"status": "El usuario ya existe"}
+            return {"status": f"El usuario {user.name} fue autorizado"}
+        return {"status": "Error: Ya existe un usuario con ese número"}
 
 @app.get("/get-users")
 def get_users(credentials: HTTPBasicCredentials = Depends(security)):
