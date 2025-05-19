@@ -5,7 +5,7 @@ from twilio.rest import Client
 from pydantic import BaseModel
 from auth import verify_admin
 from message_processor import get_response_to_message
-from chat_history_db import get_client_history, get_query_history, cleanup_old_messages
+from chat_history_db import get_client_history, get_query_history, cleanup_old_messages, add_user, get_user
 from split_messages import split_long_message
 
 import os
@@ -59,8 +59,11 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
     form_data = await request.form()
     incoming_message = form_data.get("Body", "").lower()
     sender_number = form_data.get("From", "")
-
-    background_tasks.add_task(send_delayed_response, sender_number, incoming_message)
+    
+    if get_user(sender_number) is None:
+        background_tasks.add_task(send_message, sender_number, "No autorizado")
+    else:
+        background_tasks.add_task(send_delayed_response, sender_number, incoming_message)
 
     return Response(status_code=200)
 
@@ -98,4 +101,14 @@ def query_history_endpoint(item: Item, credentials: HTTPBasicCredentials = Depen
 def delete_history(credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
         cleanup_old_messages()
+        return {"status": "OK"}
+
+class User(BaseModel):
+    name: str
+    number: str
+
+@app.post("/add-user")
+def delete_history(user: User, credentials: HTTPBasicCredentials = Depends(security)):
+    if verify_admin(credentials):
+        add_user(user.number, user.name)
         return {"status": "OK"}
