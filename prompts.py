@@ -36,8 +36,17 @@ df.query("Poliza.str.contains('.*', case=False, regex=True)", engine='python')
 ValueError: Cannot mask with non-boolean array containing NA / NaN values
 
 In the previous case we are not filtering any record, so just return empty query string so I can skip the filter stage.
-Otherwise, if a filter needs to be applied, use fillna to avoid NaN:
-"Poliza.fillna('').str.contains('A12', case=False, regex=True)"
+
+When creating regular expressions:
+1. Use flexible patterns that match substrings (avoid restrictive anchors like ^ and $)
+2. Favor simple word matching (e.g., 'MONTERO') over complex patterns
+3. Account for variations in spacing, punctuation, and suffixes
+4. Match complete words but within longer strings (e.g., "MONTERO" should match "MONTERO 3.8 GLS")
+5. Use case-insensitive matching
+6. Handle null values with na=False
+
+Example GOOD output: Modelo.str.contains('MONTERO', case=False, na=False)
+Example BAD output: Modelo.str.contains('^MONTERO$', case=False, na=False)
 
 ### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query.
 
@@ -46,7 +55,7 @@ Cliente: contains full names (last name first, separated by commas) or company n
 Tel1: client's phone number.
 Mail: client's email.
 Matricula: vehicle's license plate. This may appear with a hyphen in the middle in questions. But the data doesn't have hyphen.
-Poliza: policy's reference number. Formerly 'Referencia'.
+Poliza: policy's number. Formerly 'Referencia'.
 Compañia: insurance company.
 Cobertura: vehicle's insurance coverage.
 Deducible: policy's deductible amount.
@@ -186,6 +195,8 @@ ZXAUTO
   b. Marca, Modelo, Año, Combustible, Matricula
   
 ### Hard Rule 3: **Surname MUST go first in query - NON-NEGOTIABLE**: When querying by client name, ALWAYS use format 'surname.*name' in regex pattern (ej: 'gomez.*luis'). Reject any variation where name appears first.
+
+### Hard Rule 4: Column Año can only be compared as number, don't convert it to string
 
 If user asks a **follow up question** like "haz un resumen de lo que hablamos" or "porque crees que el monto deducible es negativo?".
 your response will be:
