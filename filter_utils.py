@@ -54,8 +54,10 @@ def clean_fuzzy_pattern(fuzzy_pattern):
     )
 
 def extract_strings_from_query(query_string, column_name):
-    # Pattern matches: column_name.fillna('').str.contains('...')
-    pattern = rf"{column_name}\.fillna\(''\)\.str\.contains\('([^']*)'"
+    # Pattern matches: 
+    # column_name.fillna('').str.contains('...') or
+    # column_name.str.contains('...')
+    pattern = rf"{column_name}(?:\.fillna\(''\))?\.str\.contains\('([^']*)'"
     names = re.findall(pattern, query_string)
     return [clean_string(name) for name in names]
 
