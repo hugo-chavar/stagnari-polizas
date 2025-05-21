@@ -94,7 +94,7 @@ def client_history_endpoint(item: Item, credentials: HTTPBasicCredentials = Depe
 @app.get("/query-history")
 def query_history_endpoint(item: Item, credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
-        history = get_query_history(item.message)
+        history = get_query_history(item.number)
         return {"query_history": history}
 
 @app.post("/delete-history")
