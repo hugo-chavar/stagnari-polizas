@@ -63,13 +63,14 @@ def extract_strings_from_query(query_string, column_name):
 
 def replace_words_in_query(query_string, column_name, new_words):
     # Split the query string while preserving column.contains() structure
-    pattern = rf"({re.escape(column_name)}\.fillna\(''\)\.str\.contains\('[^']*')"
+    # Pattern now matches both with and without .fillna('')
+    pattern = rf"({re.escape(column_name)}(?:\.fillna\(''\))?\.str\.contains\('[^']*')"
     parts = re.split(pattern, query_string)
     
-    # Find all indices where column.contains() appears
+    # Find all indices where column.contains() appears (with or without fillna)
     contains_indices = [
         i for i, part in enumerate(parts) 
-        if part.startswith(f"{column_name}.fillna('').str.contains('")
+        if re.match(rf"^{re.escape(column_name)}(?:\.fillna\(''\))?\.str\.contains\('", part)
     ]
     
     # Verify the number of words matches
@@ -78,9 +79,14 @@ def replace_words_in_query(query_string, column_name, new_words):
             f"Expected {len(contains_indices)} words to replace, but got {len(new_words)}"
         )
     
-    # Replace each occurrence with the new word
+    # Replace each occurrence with the new word (preserving original fillna structure)
     for idx, word in zip(contains_indices, new_words):
-        parts[idx] = f"{column_name}.fillna('').str.contains('{word}'"
+        # Check if the original had fillna or not
+        original_part = parts[idx]
+        if f"{column_name}.fillna('').str.contains('" in original_part:
+            parts[idx] = f"{column_name}.fillna('').str.contains('{word}'"
+        else:
+            parts[idx] = f"{column_name}.str.contains('{word}'"
     
     # Rebuild the query string
     new_query_string = ''.join(parts).replace("regex=False", "regex=True")
