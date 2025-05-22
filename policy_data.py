@@ -105,32 +105,7 @@ If you don't find a a good match relax the filter so it can catch more results. 
     return prompt
 
 def apply_filter(query_string, columns, level=0):
-    global df
-    result = None
-    if not query_string.strip():
-        raise ValueError("Error: Too many records to filter. Please provide a more specific query.")
-        # if columns:
-        #     result = df[columns]
-        # else:
-        #     result = df
-    else:
-        query_string = query_string.replace("true", "True")
-        query_string = query_string.replace("false", "False")
-        if columns:
-            try:
-                # Fix old error
-                i = columns.index("Referencia")
-                columns[i] = "Poliza"
-            except ValueError:
-                pass
-            result = df.query(query_string, engine='python')[columns]
-        else:
-            result = df.query(query_string, engine='python')
-    csv_string = result.to_csv(index=False, lineterminator ='\n')
-    logger.info("Filtered data:")
-    logger.info(csv_string)
-    line_count = csv_string.count('\n') - 1
-    has_rows  = line_count > 0
+    csv_string, has_rows = execute_filter(query_string, columns)
     if not has_rows:
         logger.info("No rows found")
 
@@ -165,6 +140,20 @@ def apply_filter(query_string, columns, level=0):
                 query_string = query_string.replace("&", "|").replace(" and ", " or ")
                 return apply_filter(query_string, columns)
     return csv_string
+
+def execute_filter(query_string, columns):
+    global df
+    result = None
+    if columns:
+        result = df.query(query_string, engine='python')[columns]
+    else:
+        result = df.query(query_string, engine='python')
+    csv_string = result.to_csv(index=False, lineterminator ='\n')
+    logger.info("Filtered data:")
+    logger.info(csv_string)
+    line_count = csv_string.count('\n') - 1
+    has_rows  = line_count > 0
+    return csv_string,has_rows
 
 
 load_csv_data()

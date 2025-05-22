@@ -28,13 +28,24 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     if "qs" in filter and "c" in filter:
         try:
             rows_filter = filter["qs"]
+            if not rows_filter.strip():
+                raise ValueError("Error: Demasiados registros encontrados. Provea una consulta mas especifica.")
+            rows_filter = rows_filter.replace("true", "True")
+            rows_filter = rows_filter.replace("false", "False")
             columns_filter = filter["c"]
             if "p" in filter and filter["p"]:
                 columns_filter = None
+            if columns_filter:
+                try:
+                    # Fix old error
+                    i = columns_filter.index("Referencia")
+                    columns_filter[i] = "Poliza"
+                except ValueError:
+                    pass
             filtered_data = apply_filter(rows_filter, columns_filter)
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
-            return f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
+            raise ValueError(f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo.")
 
     response = generate_response(incoming_message, filtered_data, to_number, negative_response)
     logger.info(f"Final response:\n{response}")
