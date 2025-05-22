@@ -194,7 +194,8 @@ ZXAUTO
   a. Poliza, Cobertura, Deducible, Vencimiento, Compañia
   b. Marca, Modelo, Año, Combustible, Matricula
   
-### Hard Rule 3: **Surname MUST go first in query - NON-NEGOTIABLE**: When querying by client name, ALWAYS use format 'surname.*name' in regex pattern (ej: 'gomez.*luis'). Reject any variation where name appears first.
+### Hard Rule 3: **Surname MUST go first in query: When querying by client name, ALWAYS use format 'surname.*name' in regex pattern.
+If the surname is longer than 6 characters, split it into two parts and separate the with an OR operator to capture possible misspellings. Example: Scholderle Gabriela => '(schol|derle).*gabriela'
 
 ### Hard Rule 4: Column Año can only be compared as number, don't convert it to string
 

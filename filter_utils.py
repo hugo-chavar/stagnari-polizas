@@ -132,7 +132,7 @@ def make_string_fuzzy_regex(name):
     
     fuzzy_chars = []
     for char in name.lower():
-        if char not in ['*', '?', '|', '&']:
+        if char not in ['*', '?', '|', '&', '(', ')']:
             # Replace non-letter symbols with '.*' if not in substitutions
             if char not in substitutions:
                 if not char.isalnum():
