@@ -1,5 +1,7 @@
 import re
 import logging
+import pandas as pd
+from thefuzz import fuzz
 
 logger = logging.getLogger(__name__)
 
@@ -277,3 +279,42 @@ def relax_modelo_filter(query_string):
     new_query = replace_words_in_query(query_string, column_name, new_words)
     logger.info(f"Updated query: {new_query}")
     return new_query
+
+
+def weighted_fuzzy_search(df, target_column, target_string, top_n=10):
+    """
+    Perform weighted fuzzy matching and return top N results.
+    
+    Args:
+        df: pandas DataFrame
+        target_column: column name to search in
+        target_string: string to match against
+        top_n: number of top results to return
+        
+    Returns:
+        DataFrame with top matches sorted by weighted score
+    """
+    # Split target into words and create decreasing weights
+    target_words = target_string.split()
+    num_words = len(target_words)
+    weights = [1 / (i + 1) for i in range(num_words)]  # Decreasing weights
+    weights = [w / sum(weights) for w in weights]  # Normalize to sum to 1
+    
+    def calculate_weighted_score(candidate):
+        if pd.isna(candidate):
+            return 0
+        candidate = str(candidate)
+        total_score = 0
+        for word, weight in zip(target_words, weights):
+            # Use partial_ratio for substring matching
+            score = fuzz.partial_ratio(word, candidate)
+            total_score += score * weight
+        return round(total_score, 1)
+    
+    # Calculate scores for all rows
+    df['match_score'] = df[target_column].fillna('').apply(calculate_weighted_score)
+    
+    # Return top N results sorted by score
+    result = df.nlargest(top_n, 'match_score').sort_values('match_score', ascending=False)
+    result = result.drop(columns=['match_score'])
+    return result
