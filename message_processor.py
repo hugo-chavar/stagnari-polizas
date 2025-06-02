@@ -25,10 +25,15 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     filtered_data = ""
     incoming_message = filter.get("r") or incoming_message
     negative_response = filter.get("n") or "Lo siento, no tengo información sobre eso."
+    filter_values = {}
+    if "cl" in filter:
+        filter_values['Cliente'] = filter.get("cl")
+    if "lp" in filter:
+        filter_values['Matricula'] = filter.get("lp")
     if "qs" in filter and "c" in filter:
         try:
             rows_filter, columns_filter = get_filters(filter)
-            filtered_data = apply_filter(rows_filter, columns_filter)
+            filtered_data = apply_filter(rows_filter, columns_filter, filter_values)
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
             raise ValueError(f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo.")

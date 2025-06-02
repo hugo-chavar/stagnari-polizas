@@ -10,4 +10,6 @@ google-auth-httplib2
 gspread
 openai
 pandas
+thefuzz
+rapidfuzz
 requests

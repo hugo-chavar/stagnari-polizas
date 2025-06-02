@@ -5,7 +5,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from gsheets import export_sheet_to_csv
-from filter_utils import relax_cliente_filter_level1, relax_cliente_filter_level2, relax_telefono_filter, relax_marca_filter, relax_modelo_filter
+from filter_utils import (
+    relax_cliente_filter_level1,
+    relax_cliente_filter_level2,
+    relax_telefono_filter,
+    relax_marca_filter,
+    relax_modelo_filter,
+    weighted_fuzzy_search
+)
 
 UPDATE_INTERVAL_FILE = os.getenv('UPDATE_INTERVAL_FILE')
 UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL'))
@@ -104,11 +111,12 @@ If you don't find a a good match relax the filter so it can catch more results. 
     
     return prompt
 
-def apply_filter(query_string, columns, level=0):
+def apply_filter(query_string, columns, query_fields, level=0):
     csv_string, has_rows = execute_filter(query_string, columns)
     if not has_rows:
         logger.info("No rows found")
 
+        new_level = level + 1
         if level == 0:
             query_change = False
             if "Cliente." in query_string:
@@ -128,17 +136,35 @@ def apply_filter(query_string, columns, level=0):
                 query_string = relax_modelo_filter(query_string)
                 query_change = True
             if query_change:
-                return apply_filter(query_string, columns, level=1)
+                return apply_filter(query_string, columns, query_fields, level=new_level)
         if level == 1:
+            if query_fields.get('Cliente'):
+                top_matches = weighted_fuzzy_search(df, 'Cliente', query_fields.get('Cliente'), top_n=5)
+                if columns:
+                    top_matches = top_matches[columns]
+                csv_string = get_csv_string(top_matches)
+                logger.info("Filtered data:")
+                logger.info(csv_string)
+            elif query_fields.get('Matricula'):
+                top_matches = weighted_fuzzy_search(df, 'Matricula', query_fields.get('Matricula'), top_n=5)
+                if columns:
+                    top_matches = top_matches[columns]
+                csv_string = get_csv_string(top_matches)
+                logger.info("Filtered data:")
+                logger.info(csv_string)
+            else:
+                level = new_level
+                logger.info("Skipping fuzzy search")
+        if level == 2:
             if "Cliente." in query_string:
                 logger.info("Relaxing cliente filter and retrying level 2...")
                 query_string = relax_cliente_filter_level2(query_string)
-                return apply_filter(query_string, columns, level=2)
-        if level == 2:
+                return apply_filter(query_string, columns, query_fields, level=new_level)
+        if level == 3:
             if "&" in query_string or " and " in query_string:
                 logger.info("Query string contains '&' - removing it")
                 query_string = query_string.replace("&", "|").replace(" and ", " or ")
-                return apply_filter(query_string, columns)
+                return apply_filter(query_string, columns, query_fields)
     return csv_string
 
 def execute_filter(query_string, columns):
@@ -148,12 +174,15 @@ def execute_filter(query_string, columns):
         result = df.query(query_string, engine='python')[columns]
     else:
         result = df.query(query_string, engine='python')
+    return get_csv_string(result)
+
+def get_csv_string(result):
     csv_string = result.to_csv(index=False, lineterminator ='\n')
     logger.info("Filtered data:")
     logger.info(csv_string)
     line_count = csv_string.count('\n') - 1
-    has_rows  = line_count > 0
-    return csv_string,has_rows
+    has_rows = line_count > 0
+    return csv_string, has_rows
 
 
 load_csv_data()
