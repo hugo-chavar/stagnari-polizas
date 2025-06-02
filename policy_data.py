@@ -137,6 +137,8 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 query_change = True
             if query_change:
                 return apply_filter(query_string, columns, query_fields, level=new_level)
+            else:
+                level = new_level
         if level == 1:
             if query_fields.get('Cliente'):
                 logger.info("Performing fuzzy search on Cliente field...")
