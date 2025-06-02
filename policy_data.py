@@ -139,19 +139,28 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 return apply_filter(query_string, columns, query_fields, level=new_level)
         if level == 1:
             if query_fields.get('Cliente'):
+                logger.info("Performing fuzzy search on Cliente field...")
                 top_matches = weighted_fuzzy_search(df, 'Cliente', query_fields.get('Cliente'), top_n=5)
                 if columns:
                     top_matches = top_matches[columns]
-                csv_string = get_csv_string(top_matches)
-                logger.info("Filtered data:")
-                logger.info(csv_string)
+                csv_string, has_rows = get_csv_string(top_matches)
+                if not has_rows:
+                    level = new_level
+                    logger.info("No rows found after fuzzy search on Cliente")
+                else:
+                    logger.info("Fuzzy search on Cliente found rows:")
+                    logger.info(csv_string)
             elif query_fields.get('Matricula'):
                 top_matches = weighted_fuzzy_search(df, 'Matricula', query_fields.get('Matricula'), top_n=5)
                 if columns:
                     top_matches = top_matches[columns]
-                csv_string = get_csv_string(top_matches)
-                logger.info("Filtered data:")
-                logger.info(csv_string)
+                csv_string, has_rows = get_csv_string(top_matches)
+                if not has_rows:
+                    level = new_level
+                    logger.info("No rows found after fuzzy search on Cliente")
+                else:
+                    logger.info("Fuzzy search on Matricula found rows:")
+                    logger.info(csv_string)
             else:
                 level = new_level
                 logger.info("Skipping fuzzy search")
