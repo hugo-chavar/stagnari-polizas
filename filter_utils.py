@@ -283,16 +283,16 @@ def relax_modelo_filter(query_string):
 
 def weighted_fuzzy_search(df, target_column, target_string, top_n=10):
     """
-    Perform weighted fuzzy matching and return top N results.
+    Perform weighted fuzzy matching and return top N results plus any ties with the Nth score.
     
     Args:
         df: pandas DataFrame
         target_column: column name to search in
         target_string: string to match against
-        top_n: number of top results to return
+        top_n: minimum number of top results to return
         
     Returns:
-        DataFrame with top matches sorted by weighted score
+        DataFrame with top matches sorted by weighted score (including ties for last position)
     """
     # Split target into words and create decreasing weights
     target_words = target_string.split()
@@ -314,7 +314,15 @@ def weighted_fuzzy_search(df, target_column, target_string, top_n=10):
     # Calculate scores for all rows
     df['match_score'] = df[target_column].fillna('').apply(calculate_weighted_score)
     
-    # Return top N results sorted by score
-    result = df.nlargest(top_n, 'match_score').sort_values('match_score', ascending=False)
+    # Sort by score descending
+    df_sorted = df.sort_values('match_score', ascending=False)
+    
+    # Get all rows with score >= Nth score
+    if len(df_sorted) > top_n:
+        nth_score = df_sorted.iloc[top_n-1]['match_score']
+        result = df_sorted[df_sorted['match_score'] >= nth_score]
+    else:
+        result = df_sorted
+    
     result = result.drop(columns=['match_score'])
     return result
