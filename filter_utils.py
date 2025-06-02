@@ -295,7 +295,7 @@ def weighted_fuzzy_search(df, target_column, target_string, top_n=10):
         DataFrame with top matches sorted by weighted score (including ties for last position)
     """
     # Split target into words and create decreasing weights
-    target_words = target_string.split()
+    target_words = target_string.upper().split()
     num_words = len(target_words)
     weights = [1 / (i + 1) for i in range(num_words)]  # Decreasing weights
     weights = [w / sum(weights) for w in weights]  # Normalize to sum to 1
@@ -303,7 +303,7 @@ def weighted_fuzzy_search(df, target_column, target_string, top_n=10):
     def calculate_weighted_score(candidate):
         if pd.isna(candidate):
             return 0
-        candidate = str(candidate)
+        candidate = str(candidate).upper()
         total_score = 0
         for word, weight in zip(target_words, weights):
             # Use partial_ratio for substring matching
