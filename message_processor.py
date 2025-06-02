@@ -18,6 +18,9 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     incoming_message = incoming_message.lower()
     load_csv_data()
     filter = generate_query(incoming_message, to_number)
+    return process_incoming_message(filter, incoming_message, to_number)
+
+def process_incoming_message(filter, incoming_message, to_number):
     # Check if model understood the message
     if "?" in filter:
         # If the model didn't understand the message, return the follow up message
