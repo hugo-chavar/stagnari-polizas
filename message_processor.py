@@ -25,25 +25,24 @@ def process_incoming_message(filter, incoming_message, to_number):
     if "?" in filter:
         # If the model didn't understand the message, return the follow up message
         return filter["?"]
-    filtered_data = ""
-    incoming_message = filter.get("r") or incoming_message
-    negative_response = filter.get("n") or "Lo siento, no tengo información sobre eso."
-    filter_values = {}
-    if "cl" in filter:
-        filter_values['Cliente'] = filter.get("cl")
-    if "lp" in filter:
-        filter_values['Matricula'] = filter.get("lp")
-    if "qs" in filter and "c" in filter:
-        try:
-            rows_filter, columns_filter = get_filters(filter)
-            filtered_data = apply_filter(rows_filter, columns_filter, filter_values)
-        except Exception as e:
-            logger.error(f"Error applying filter: {e}")
-            raise ValueError(f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo.")
+    incoming_message, filtered_data, negative_response = get_filtered_data(filter, incoming_message)
 
     response = generate_response(incoming_message, filtered_data, to_number, negative_response)
     logger.info(f"Final response:\n{response}")
     return response
+
+def get_filtered_data(filter, incoming_message):
+    filtered_data = ""
+    incoming_message = filter.get("r") or incoming_message
+    negative_response = filter.get("n") or "Lo siento, no tengo información sobre eso."
+    if "qs" in filter and "c" in filter:
+        try:
+            rows_filter, columns_filter, filter_values = get_filters(filter)
+            filtered_data = apply_filter(rows_filter, columns_filter, filter_values)
+        except Exception as e:
+            logger.error(f"Error applying filter: {e}")
+            raise ValueError(f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo.")
+    return incoming_message,filtered_data,negative_response
 
 def get_filters(filter):
     rows_filter = filter["qs"]
@@ -61,4 +60,9 @@ def get_filters(filter):
             columns_filter[i] = "Poliza"
         except ValueError:
             pass
-    return rows_filter,columns_filter
+    filter_values = {}
+    if "cl" in filter:
+        filter_values['Cliente'] = filter.get("cl")
+    if "lp" in filter:
+        filter_values['Matricula'] = filter.get("lp")
+    return rows_filter,columns_filter,filter_values
