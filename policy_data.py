@@ -112,17 +112,16 @@ If you don't find a a good match relax the filter so it can catch more results. 
     return prompt
 
 def apply_filter(query_string, columns, query_fields, level=0):
-    csv_string, has_rows = execute_filter(query_string, columns)
+    relaxed_query_string = query_string
+    if "Cliente." in query_string:
+        relaxed_query_string = relax_cliente_filter_level1(query_string)
+    csv_string, has_rows = execute_filter(relaxed_query_string, columns)
     if not has_rows:
         logger.info("No rows found")
 
         new_level = level + 1
         if level == 0:
             query_change = False
-            if "Cliente." in query_string:
-                logger.info("Relaxing cliente filter and retrying level 1...")
-                query_string = relax_cliente_filter_level1(query_string)
-                query_change = True
             if "Tel1." in query_string:
                 logger.info("Relaxing telefono filter and retrying level 1...")
                 query_string = relax_telefono_filter(query_string)
