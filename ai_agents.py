@@ -28,13 +28,9 @@ def clean_llm_json(raw_response: str) -> str:
     return clean_llm_json
 
 
-def generate_query(question, client_number):
-    # Save the new question to the database
-    save_query(client_number, "user", question)
-    
-    # Get the conversation history from the last 2 days
+def _prepare_query_messages(question, client_number):
+    """Prepare the messages for the API call."""
     history = get_query_history(client_number, days_limit=2)
-    
     prompt = prompts.get_query_prompt()
     messages = [
         {"role": "system", "content": prompt}
@@ -44,6 +40,14 @@ def generate_query(question, client_number):
         messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": question})
     
+    return messages
+
+
+def generate_query(question, client_number):
+    # Save the new question to the database
+    save_query(client_number, "user", question)
+    
+    messages = _prepare_query_messages(question, client_number)
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,
