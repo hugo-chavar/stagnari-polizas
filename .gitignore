@@ -6,4 +6,5 @@ venv*/
 __pycache__/
 *.json
 *.db
+*.db-journal
 update*.txt
