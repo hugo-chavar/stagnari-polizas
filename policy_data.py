@@ -188,11 +188,22 @@ def execute_filter(query_string, columns):
     return get_csv_string(result)
 
 def get_csv_string(result):
-    csv_string = result.to_csv(index=False, lineterminator ='\n')
-    logger.info("Filtered data:")
-    logger.info(csv_string)
+    csv_string = result.to_csv(index=False, lineterminator='\n')
     line_count = csv_string.count('\n') - 1
     has_rows = line_count > 0
+    
+    # Log only up to 10 rows with ellipsis if there are more
+    if has_rows:
+        logger.info("Filtered data:")
+        lines = csv_string.split('\n')
+        if line_count > 10:
+            # Take first 10 rows and add ellipsis
+            shortened_lines = lines[:11]  # 10 data rows + header
+            shortened_csv = '\n'.join(shortened_lines) + '\n...'
+            logger.info(shortened_csv)
+        else:
+            logger.info(csv_string)
+    
     return csv_string, has_rows
 
 
