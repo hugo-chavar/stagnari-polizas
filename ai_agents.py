@@ -36,13 +36,13 @@ def _prepare_query_messages(question, client_number):
         {"role": "system", "content": prompt}
     ]
     # Use the history messages, excluding the current question if already saved
-    for role, content in history[:-1]:
+    for role, content in history:
         messages.append({"role": role, "content": content})
     
     responses_history = get_client_history(client_number, days_limit=1)
     if responses_history:
-        messages.append({"role": "system", "content": get_surnames_prompt()})
         response_model_last_response = responses_history[-1][1]
+        response_model_last_response = response_model_last_response.replace("*", "")
         messages.extend([
             {"role": "assistant", "content": (
                 "CONTEXT FOR FOLLOW-UP:\n"
@@ -58,10 +58,9 @@ def _prepare_query_messages(question, client_number):
 
 
 def generate_query(question, client_number):
-    # Save the new question to the database
-    save_query(client_number, "user", question)
     
     messages = _prepare_query_messages(question, client_number)
+    save_query(client_number, "user", question)
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,
