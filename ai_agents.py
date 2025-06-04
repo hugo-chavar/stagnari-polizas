@@ -36,7 +36,6 @@ def generate_query(question, client_number):
     history = get_query_history(client_number, days_limit=2)
     
     prompt = prompts.get_query_prompt()
-    surnames_prompt = get_surnames_prompt()
     messages = [
         {"role": "system", "content": prompt}
     ]
@@ -44,8 +43,6 @@ def generate_query(question, client_number):
     for role, content in history[:-1]:
         messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": question})
-    
-    # logger.info(f"Messages for query generation:\n{messages}")
     
     response = client.chat.completions.create(
         model=MODEL,
