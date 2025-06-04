@@ -38,6 +38,20 @@ def _prepare_query_messages(question, client_number):
     # Use the history messages, excluding the current question if already saved
     for role, content in history[:-1]:
         messages.append({"role": role, "content": content})
+    
+    responses_history = get_client_history(client_number, days_limit=1)
+    if responses_history:
+        messages.append({"role": "system", "content": get_surnames_prompt()})
+        response_model_last_response = responses_history[-1][1]
+        messages.extend([
+            {"role": "assistant", "content": (
+                "CONTEXT FOR FOLLOW-UP:\n"
+                "The user was recently shown these results:\n"
+                f"{response_model_last_response}\n\n"
+                "For references like 'el primero' or '#2', modify our previous query "
+                "to select that specific item from these results."
+            )},
+        ])
     messages.append({"role": "user", "content": question})
     
     return messages
