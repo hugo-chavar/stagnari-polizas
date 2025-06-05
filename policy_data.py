@@ -158,7 +158,7 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 csv_string, has_rows = get_csv_string(top_matches)
                 if not has_rows:
                     level = new_level
-                    logger.info("No rows found after fuzzy search on Cliente")
+                    logger.info("No rows found after fuzzy search on Matricula")
                 else:
                     logger.info("Fuzzy search on Matricula found rows:")
                     logger.info(csv_string)
