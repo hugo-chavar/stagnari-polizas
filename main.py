@@ -28,6 +28,7 @@ app.add_middleware(
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+SHARED_FILES_URL = os.getenv("SHARED_FILES_URL") 
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
@@ -57,6 +58,18 @@ def send_message(user_number, message):
             )
     print(f"Sent message: {message} to {user_number}", flush=True)
 
+def send_file(user_number, file_path):
+    filename = os.path.basename(file_path)
+    public_url = f"{SHARED_FILES_URL}/{filename}"
+    
+    client.messages.create(
+        from_=TWILIO_PHONE_NUMBER,
+        to=user_number,
+        media_url=[public_url],
+        body="Here's the document you requested"
+    )
+    print(f"Sent file: {public_url} to {user_number}", flush=True)
+
 @app.post("/webhook")
 async def webhook(request: Request, background_tasks: BackgroundTasks):
     form_data = await request.form()
@@ -64,7 +77,11 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
     sender_number = form_data.get("From", "")
     
     if get_user(sender_number) is None:
-        background_tasks.add_task(send_message, sender_number, "No autorizado")
+        if sender_number == "whatsapp:+5491134837950":
+            # Special case for the admin number
+            background_tasks.add_task(send_file, sender_number, "test_f5e.pdf")
+        else:
+            background_tasks.add_task(send_message, sender_number, "No autorizado")
     else:
         background_tasks.add_task(send_delayed_response, sender_number, incoming_message)
 
