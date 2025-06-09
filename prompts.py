@@ -51,7 +51,7 @@ When creating regular expressions:
 5. Use case-insensitive matching
 6. Handle null values with na=False
 
-### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query.
+### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query. If users apologizes for a previous mistake, use the last 2 questions as context to improve the query.
 
 DataFrame columns are: Matricula, Poliza, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. Also remember that the user could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account.
