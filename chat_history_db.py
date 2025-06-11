@@ -45,6 +45,20 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         """)
+        # Car table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS car (
+            policy_number TEXT,
+            license_plate TEXT,
+            brand TEXT,
+            model TEXT,
+            year INTEGER,
+            soa_file_path TEXT,
+            mercosur_file_path TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (policy_number, license_plate)
+        )
+        """)
         conn.commit()
 
 def save_message(client_number: str, role: str, content: str):
@@ -144,6 +158,67 @@ def get_all_users() -> List[str]:
         cursor = conn.cursor()
         cursor.execute("SELECT name, client_number FROM user")
         return cursor.fetchall()
+
+def add_car(policy_number: str, license_plate: str, brand: str, model: str, year: int, soa_file_path: str = None, mercosur_file_path: str = None) -> bool:
+    """Add a new car to the database"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO car (policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path)
+            )
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False  # Car already exists
+
+def update_car(policy_number: str, license_plate: str, brand: str = None, model: str = None, year: int = None, soa_file_path: str = None, mercosur_file_path: str = None) -> bool:
+    """Update an existing car's information"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        fields = []
+        values = []
+        
+        if brand is not None:
+            fields.append("brand = ?")
+            values.append(brand)
+        if model is not None:
+            fields.append("model = ?")
+            values.append(model)
+        if year is not None:
+            fields.append("year = ?")
+            values.append(year)
+        if soa_file_path is not None:
+            fields.append("soa_file_path = ?")
+            values.append(soa_file_path)
+        if mercosur_file_path is not None:
+            fields.append("mercosur_file_path = ?")
+            values.append(mercosur_file_path)
+        
+        if not fields:
+            return False  # No fields to update
+        
+        values.append(policy_number)
+        values.append(license_plate)
+        
+        query = f"UPDATE car SET {', '.join(fields)} WHERE policy_number = ? AND license_plate = ?"
+        
+        cursor.execute(query, tuple(values))
+        conn.commit()
+        
+        return cursor.rowcount > 0  # Returns True if any row was updated
+
+def get_car(policy_number: str, license_plate: str) -> Tuple[str, str, str, int, str, str]:
+    """Retrieve car information by policy number and license plate"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT brand, model, year, soa_file_path, mercosur_file_path FROM car WHERE policy_number = ? AND license_plate = ?",
+            (policy_number, license_plate)
+        )
+        result = cursor.fetchone()
+        return result if result else None
 
 # Initialize the database when this module is imported
 init_db()
