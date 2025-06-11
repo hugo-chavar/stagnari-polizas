@@ -1,6 +1,5 @@
 import sqlite3
 from typing import List, Tuple
-import os
 from datetime import datetime, timedelta
 
 DATABASE_NAME = "chat_history.db"
@@ -198,6 +197,9 @@ def update_car(policy_number: str, license_plate: str, brand: str = None, model:
         
         if not fields:
             return False  # No fields to update
+        
+        # Add timestamp update
+        fields.append("timestamp = CURRENT_TIMESTAMP")
         
         values.append(policy_number)
         values.append(license_plate)
