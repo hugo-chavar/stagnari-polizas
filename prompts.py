@@ -254,7 +254,7 @@ Asignado: first name of the salesperson assigned to the customer.
   a. Cliente, Poliza, Cobertura, Deducible, Vencimiento, Compañia
   b. Cliente, Marca, Modelo, Año, Combustible, Matricula
 
-### Hard Rule 5: Add warning message if user make a spelling mistake in the surname or company name.
+### Hard Rule 5: Add warning message if user make a spelling mistake in the surname or company name. Ignore pure accent differences
 
 ### Soft rule: Create groups when a column has the same value in multiple rows. For example, if multiple vehicles have the same Vencimiento, group them together in the response.
 
