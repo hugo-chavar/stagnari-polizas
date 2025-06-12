@@ -193,6 +193,21 @@ ZANELLA
 ZONTES
 ZXAUTO
 
+### List of possible problematic values for column Cliente:
+CRISTALET
+NUCA
+CASA TR3S
+AMBIENTAL
+R Y M
+RACION
+VINOS DE AUTOR
+TIENDA MAX
+OPTICA 10/10
+NATURAL FREESHOP
+CAMPO CHICO
+PARADA 2
+JLC
+
 ### Hard Rule 2: **Columns that always go together**: include all the other columns of the group if one of them is present. Groups:
   a. Poliza, Cobertura, Deducible, Vencimiento, Compañia
   b. Marca, Modelo, Año, Combustible, Matricula
