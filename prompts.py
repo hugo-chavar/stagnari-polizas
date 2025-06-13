@@ -19,7 +19,7 @@ Output your response as a JSON object in this way:
   "c": ["col1", "col2", ...],
   "p": true|false,
   "n": "No se encontraron pólizas ... en los datos disponibles.",
-  "r": "..."
+  "r": "Buscando ..., relacionalo con lo que dije anteriormente ..."
 }
 
 | Key | Description |
@@ -30,7 +30,7 @@ Output your response as a JSON object in this way:
 | c   | Columns |
 | p   | Boolean indicating if using info from previous questions |
 | n   | Default "not found" message in Spanish |
-| r   | Rephrase the user's question while preserving its original meaning and incorporating relevant context from previous interactions to maintain continuity in the conversation.|
+| r   | Rephrase the user's question while preserving its original meaning and (if p is true) incorporating relevant context from previous interactions to maintain continuity in the conversation.|
 
 (**) =>  Only add this key if the query includes it
 
@@ -51,7 +51,7 @@ When creating regular expressions:
 5. Use case-insensitive matching
 6. Handle null values with na=False
 
-### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query. If users apologizes for a previous mistake, use the last 2 questions as context to improve the query.
+### Hard Rule 1: Use previous questions to have context and improve the query based on more information. Prefer query by Surname if you have one in the immediate history. If user asked for a specific surname, use only that in the query. If users apologizes for a previous mistake, use the last 2 questions as context to improve the query. Also provide a rephrased version of the user's question in the "r" key including all the details from previous questions, this is very important we need all the related history summarized in this key.
 
 DataFrame columns are: Matricula, Poliza, Compañia, Cobertura, Deducible, Vencimiento, Cliente, Marca, Modelo, Combustible, Año, Asignado.
 Cliente: contains full names (last name first, separated by commas) or company names. If user asks about a name that partially matches a client name that is Ok, use that information in your answer. Also remember that the user could submit roles as a title or honorific (In spanish: señor, señorita, doctor, etc), don't take that into account.
@@ -69,12 +69,11 @@ Combustible: vehicle's fuel type.
 Año: vehicle's year.
 Asignado: first name of the salesperson assigned to the client.
 
-### List of possible values for column Marca:
+### Some of the possible values for column Marca:
 ACOPLADO
 AGRUPADOS
 ALFA ROMEO
 APRILIA
-AUDI
 B.M.W.
 BACCIO
 BAJAJ
@@ -88,8 +87,6 @@ CHANA
 CHANGAN CHAN
 CHAPA A PRUEBA
 CHERY
-CHEVROLET
-CITROEN
 CONTINENTAL
 DAELIM
 DAEWOO
@@ -103,7 +100,6 @@ FAW
 FENIX
 FERBUS
 FIAT
-FORD
 FOTON
 GAS GAS
 GEELY
@@ -113,7 +109,6 @@ HAIMA
 HARLEY DAVIDSON
 HAVAL
 HERRERA
-HONDA
 HOWO
 HUAIHAI
 HUSQVARNA
@@ -150,29 +145,21 @@ OMBU
 OMODA
 OPEL
 OTRAS MARCAS
-PEUGEOT
 PIAGGIO
 POLARIS
-PORSCHE
 RAM
 RANDON
 RAVE
-RENAULT
 ROVER
 ROYAL ENFIELD
-SCANIA
 SCOTT
 SEMIRREMOLQUE
 SINOTRUK
 SMART
 SSANGYONG
-SUBARU
-SUZUKI
 TABBERT
 TATA
-TESLA
 TORO
-TOYOTA
 TRAILER
 TREK
 TRIUMPH
@@ -182,8 +169,6 @@ VESPA
 VICTORY
 VINCE
 VITAL
-VOLKSWAGEN
-VOLVO
 VULCANO
 WILLYS
 WINNER
