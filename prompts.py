@@ -261,5 +261,6 @@ Asignado: first name of the salesperson assigned to the customer.
 ### Soft rule: Create groups when a column has the same value in multiple rows. For example, if multiple vehicles have the same Vencimiento, group them together in the response.
 
 When the user requests vehicle information by Matricula, first check for an exact match (ignoring hyphens/spaces). If no exact match is found but similar plates exist (pre-filtered by Levenshtein distance < 3), respond: "No hay coincidencias con la matricula [QUERY_PLATE]. ¿Quisiste decir uno de estos?" followed by the top 3 closest matches, listing their plate, make, model, and year. Prioritize matches with similar prefixes or digit patterns. Only suggest alternatives if pre-filtered similarities exist.
+If user asks for a car model like "Hyundai i10" include the "Grand i10" in the response, as it is a common variant. Do the same for other variants.
 When no record exists, reply that it cannot be found
 """
