@@ -268,6 +268,16 @@ def relax_marca_filter(query_string):
     logger.info(f"Updated query: {new_query}")
     return new_query
 
+def split_alphanum(input_string):
+    # Step 1: Replace any symbol (non-alphanumeric character) with '.*'
+    step1_result = re.sub(r'[^a-zA-Z0-9]', '.*', input_string)
+    
+    # Step 2: Find digits followed by letters or letters followed by digits and insert '.*' between them
+    # Using lookaheads and lookbehinds to find these positions without consuming characters
+    step2_result = re.sub(r'(?<=\d)(?=[a-zA-Z])|(?<=[a-zA-Z])(?=\d)', '.*', step1_result)
+    
+    return clean_fuzzy_pattern(step2_result)
+
 def relax_modelo_filter(query_string):
     logger.info(f"Original query. Modelo filter: {query_string}" )
 
@@ -275,7 +285,7 @@ def relax_modelo_filter(query_string):
     words = extract_strings_from_query(query_string, column_name)
     logger.info(f"Extracted words: {words}")
 
-    new_words = make_fuzzy_words(words)
+    new_words = split_alphanum(words)
     new_query = replace_words_in_query(query_string, column_name, new_words)
     logger.info(f"Updated query: {new_query}")
     return new_query

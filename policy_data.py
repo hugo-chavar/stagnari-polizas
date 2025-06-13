@@ -52,14 +52,12 @@ def update_interval_has_passed():
         # File doesn't exist or is empty/corrupt - treat as interval passed
         return True
 
-
 def update_interval():
     """Update the timestamp file with current time (rounded to minutes)."""
     global last_update
     last_update = datetime.now().replace(second=0, microsecond=0)
     with open(UPDATE_INTERVAL_FILE, 'w') as f:
         f.write(last_update.strftime('%Y-%m-%d %H:%M:%S'))
-
 
 def load_csv_data():
     global df
@@ -115,6 +113,8 @@ def apply_filter(query_string, columns, query_fields, level=0):
     relaxed_query_string = query_string
     if "Cliente." in query_string:
         relaxed_query_string = relax_cliente_filter_level1(query_string)
+    if "Modelo." in query_string:
+        relaxed_query_string = relax_modelo_filter(relaxed_query_string)
     csv_string, has_rows = execute_filter(relaxed_query_string, columns)
     if not has_rows:
         logger.info("No rows found")
@@ -129,10 +129,6 @@ def apply_filter(query_string, columns, query_fields, level=0):
             if "Marca." in query_string:
                 logger.info("Relaxing marca filter and retrying level 1...")
                 query_string = relax_marca_filter(query_string)
-                query_change = True
-            if "Modelo." in query_string:
-                logger.info("Relaxing modelo filter and retrying level 1...")
-                query_string = relax_modelo_filter(query_string)
                 query_change = True
             if query_change:
                 return apply_filter(query_string, columns, query_fields, level=new_level)
