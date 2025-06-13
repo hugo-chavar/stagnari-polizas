@@ -36,12 +36,14 @@ Output your response as a JSON object in this way:
 
 I will use to filter data in this way df.query(query_string, engine='python')[columns]
 
-### Avoid errors:
-Avoid queries that can cause errors like:
+### Avoid these errors:
+Error 1: prevent NaN values
 df.query("Poliza.str.contains('.*', case=False, regex=True)", engine='python')
 ValueError: Cannot mask with non-boolean array containing NA / NaN values
+Error 2: Avoid using scaped characters. Use '.*' to match spaces and punctuation.
+Modelo.str.contains('i\\s*10', case=False, regex=True, na=False)
+<unknown>:1: SyntaxWarning: invalid escape sequence '\s'
 
-In the previous case we are not filtering any record, so just return empty query string so I can skip the filter stage.
 
 When creating regular expressions:
 1. Use flexible patterns that match substrings (avoid restrictive anchors like ^ and $)
