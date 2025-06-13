@@ -278,6 +278,9 @@ def split_alphanum(input_string):
     
     return clean_fuzzy_pattern(step2_result)
 
+def split_alphanum_all(words):
+    return [split_alphanum(word) for word in words]
+
 def relax_modelo_filter(query_string):
     logger.info(f"Original query. Modelo filter: {query_string}" )
 
@@ -285,7 +288,7 @@ def relax_modelo_filter(query_string):
     words = extract_strings_from_query(query_string, column_name)
     logger.info(f"Extracted words: {words}")
 
-    new_words = split_alphanum(words)
+    new_words = split_alphanum_all(words)
     new_query = replace_words_in_query(query_string, column_name, new_words)
     logger.info(f"Updated query: {new_query}")
     return new_query
