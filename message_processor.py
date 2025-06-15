@@ -1,35 +1,72 @@
 import logging
 from policy_data import load_csv_data, apply_filter
 from ai_agents import generate_query, generate_response
+from filter_utils import remove_spanish_accents
 
 logger = logging.getLogger(__name__)
+
 
 def get_response_to_message(incoming_message: str, to_number: str) -> str:
     """
     Processes incoming WhatsApp message and returns appropriate response.
-    
+
     Args:
         incoming_message: The received message
-        
+
     Returns:
         str: The response to send back
     """
-    
-    incoming_message = incoming_message.lower()
+
+    incoming_message = remove_spanish_accents(incoming_message.lower()).strip()
+    common_phrases = {
+        "": "",
+        "hola": "Hola! ¿En qué puedo ayudarte?",
+        "buenas": "Hola! ¿En qué puedo ayudarte?",
+        "buenos dias": "Buenas! ¿En qué puedo ayudarte?",
+        "buenas tardes": "Buenas! ¿En qué puedo ayudarte?",
+        "buenas noches": "Buenas! ¿En qué puedo ayudarte?",
+        "gracias": "De nada!",
+        "adios": "Hasta luego!",
+        "hasta luego": "Dale! Que tengas un buen día.",
+        "muchas gracias": "De nada!.",
+        "perfecto": "Ok!",
+        "ok": "¡Entendido! ¿Te puedo ayudar en algo más?",
+        "gracias por tu ayuda": "De nada",
+        "genial": "Ok!",
+        "muy bien": "Me alegro!",
+        "todo bien": "Perfecto!",
+        "todo correcto": "Perfecto!",
+        "todo en orden": "Genial!",
+        "todo claro": "Buenisimo!",
+        "gracias por la informacion": "Estoy para servir!",
+        "gracias por tu respuesta": "De nada che!",
+    }
+
+    if incoming_message in common_phrases:
+        response = common_phrases[incoming_message]
+        logger.info(f"Common phrase response: {response}")
+        return response
+
     load_csv_data()
     filter = generate_query(incoming_message, to_number)
     return process_incoming_message(filter, incoming_message, to_number)
+
 
 def process_incoming_message(filter, incoming_message, to_number):
     # Check if model understood the message
     if "?" in filter:
         # If the model didn't understand the message, return the follow up message
         return filter["?"]
-    incoming_message, filtered_data, negative_response = get_filtered_data(filter, incoming_message)
+    incoming_message, filtered_data, negative_response = get_filtered_data(
+        filter, incoming_message
+    )
 
-    response = generate_response(incoming_message, filtered_data, to_number, negative_response)
+    response = generate_response(
+        incoming_message, filtered_data, to_number, negative_response
+    )
     logger.info(f"Final response:\n{response}")
     return response
+
 
 def get_filtered_data(filter, incoming_message):
     filtered_data = ""
@@ -41,13 +78,18 @@ def get_filtered_data(filter, incoming_message):
             filtered_data = apply_filter(rows_filter, columns_filter, filter_values)
         except Exception as e:
             logger.error(f"Error applying filter: {e}")
-            raise ValueError(f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo.")
-    return incoming_message,filtered_data,negative_response
+            raise ValueError(
+                f"Error: Hubo un error al procesar tu consulta. Por favor intenta de nuevo."
+            )
+    return incoming_message, filtered_data, negative_response
+
 
 def get_filters(filter):
     rows_filter = filter["qs"]
     if not rows_filter.strip():
-        raise ValueError("Error: Demasiados registros encontrados. Provea una consulta mas especifica.")
+        raise ValueError(
+            "Error: Demasiados registros encontrados. Provea una consulta mas especifica."
+        )
     rows_filter = rows_filter.replace("true", "True")
     rows_filter = rows_filter.replace("false", "False")
     columns_filter = filter["c"]
@@ -55,14 +97,14 @@ def get_filters(filter):
         columns_filter = None
     if columns_filter:
         try:
-                    # Fix old error
+            # Fix old error
             i = columns_filter.index("Referencia")
             columns_filter[i] = "Poliza"
         except ValueError:
             pass
     filter_values = {}
     if "cl" in filter:
-        filter_values['Cliente'] = filter.get("cl")
+        filter_values["Cliente"] = filter.get("cl")
     if "lp" in filter:
-        filter_values['Matricula'] = filter.get("lp")
-    return rows_filter,columns_filter,filter_values
+        filter_values["Matricula"] = filter.get("lp")
+    return rows_filter, columns_filter, filter_values
