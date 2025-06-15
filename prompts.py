@@ -39,9 +39,7 @@ I will use to filter data in this way df.query(query_string, engine='python')[co
 Error 1: prevent NaN values
 df.query("Poliza.str.contains('.*', case=False, regex=True)", engine='python')
 ValueError: Cannot mask with non-boolean array containing NA / NaN values
-Error 2: Avoid using scaped characters. Use '.*' to match spaces and punctuation.
-Modelo.str.contains('i\\s*10', case=False, regex=True, na=False)
-<unknown>:1: SyntaxWarning: invalid escape sequence '\s'
+Error 2: Avoid using escape characters. Use '.*' to match spaces and punctuation.
 
 
 When creating regular expressions:
