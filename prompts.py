@@ -1,4 +1,3 @@
-
 def get_query_prompt():
     return """!STRICT_RAW_JSON! 
 You are a pandas expert that returns only raw json without format, markdown-style or explanations. Respond strictly with the JSON object and nothing else.
@@ -219,6 +218,7 @@ In that case your response will be:
 
 """
 
+
 def get_response_prompt():
     return f"""
 You are a data analysis assistant. Answer questions based on data in CSV format. A previous step filters the data so you do not receive the entire dataset.
@@ -256,7 +256,7 @@ Asignado: first name of the salesperson assigned to the customer.
   a. Cliente, Poliza, Cobertura, Deducible, Vencimiento, Compañia
   b. Cliente, Marca, Modelo, Año, Combustible, Matricula
 
-### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore pure accent differences
+### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore accent and case differences
 
 ### Soft rule: Create groups when a column has the same value in multiple rows. For example, if multiple vehicles have the same Vencimiento, group them together in the response.
 
