@@ -147,7 +147,12 @@ class SuraDownloader(BaseDownloader):
     def download_policy_files(self, policy: Dict[str, Any], endorsement_line: int):
         """Handle the SURA policy file download."""
         try:
-            e_id = self.select_endorsement_line(endorsement_line)
+            policy["obs"] = ""
+            e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
+            if ramo_cod != "11":
+                policy["obs"] = "No es automovil"
+                logger.info(f"It is not an automobile, skipping policy")
+                return
 
             self.go_to_endorsement_items()
 
@@ -292,6 +297,17 @@ class SuraDownloader(BaseDownloader):
         id_pv_locator = Locator(LocatorType.CSS, "td[aria-describedby='grilla_id_pv']")
 
         try:
+            ramo_ltor = Locator(
+                LocatorType.CSS, "td[aria-describedby='grilla_cod_ramo']"
+            )
+            ramo_cell = self.driver.find_element(ramo_ltor, context=row_element)
+            ramo_value = self.driver.driver.execute_script(
+                "return arguments[0].textContent", ramo_cell
+            ).strip()
+
+            if ramo_value != "11":
+                return None, ramo_value
+
             # Get the cell text value
             id_pv_cell = self.driver.find_element(id_pv_locator, context=row_element)
             id_pv_value = id_pv_cell.text.strip()
@@ -307,7 +323,7 @@ class SuraDownloader(BaseDownloader):
             logger.info(
                 f"Selected endorsement line {endorsement_line}, ID_PV: {id_pv_value}"
             )
-            return id_pv_value
+            return id_pv_value, ramo_value
 
         except Exception as e:
             logger.error(
