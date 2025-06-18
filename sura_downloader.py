@@ -153,9 +153,13 @@ class SuraDownloader(BaseDownloader):
 
             vehicles_count = self.get_vehicles_count()
             vehicles_data = self.get_vehicles_data()
-            logger.info(f"Vehicles data: {vehicles_data}")
+            logger.info(f"Page vehicles data: {vehicles_data}")
+            logger.info(f"Policy vehicles data: {policy["vehicles"]}")
             logger.info(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
             # Redirect to each vehicle detail page
+            single_vehicle = (
+                vehicles_count == len(policy["vehicles"]) and vehicles_count == 1
+            )
 
             empty_license_plate = 0
             for vehicle in vehicles_data:
@@ -172,14 +176,27 @@ class SuraDownloader(BaseDownloader):
                     vehicle["status"] = "Skipped"
                     vehicle["reason"] = "Excluido de la flota"
                     continue
-                requested_vehicle = next(
-                    (
-                        v
-                        for v in policy["vehicles"]
-                        if v["license_plate"] == vehicle_plate
-                    ),
-                    None,
-                )
+                if single_vehicle:
+                    requested_vehicle = policy["vehicles"][0]
+                    if (
+                        vehicle_plate.strip()
+                        != requested_vehicle["license_plate"].strip()
+                    ):
+                        if len(requested_vehicle["license_plate"]) == 1:
+                            requested_vehicle["license_plate"] = vehicle_plate.strip()
+                        elif len(vehicle_plate.strip()) == 1:
+                            vehicle["Matrícula"] = requested_vehicle[
+                                "license_plate"
+                            ].strip()
+                else:
+                    requested_vehicle = next(
+                        (
+                            v
+                            for v in policy["vehicles"]
+                            if v["license_plate"] == vehicle_plate
+                        ),
+                        None,
+                    )
                 if not requested_vehicle:
                     logger.warning(
                         f"Vehicle {vehicle_plate} is not in the spreadsheet, skipping download"
@@ -225,9 +242,12 @@ class SuraDownloader(BaseDownloader):
 
                     self.driver.back()
                     vehicle["status"] = "Ok"
-                    self.driver.wait_for_clickable(
-                        Locator(LocatorType.CSS, "input#cmdExportarFlota")
-                    )
+                    try:
+                        self.driver.wait_for_clickable(
+                            Locator(LocatorType.CSS, "input#cmdExportarFlota")
+                        )
+                    except:
+                        pass
                     requested_vehicle.update(vehicle)
 
                 except Exception as e:
