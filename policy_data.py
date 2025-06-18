@@ -201,5 +201,81 @@ def get_csv_string(result):
     
     return csv_string, has_rows
 
+def get_grouped_policy_data():
+    global df
+    # Make sure required columns exist
+    required_columns = ['Compañia', 'Poliza', 'Vencimiento', 'Matricula', 'Marca', 'Modelo', 'Año']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Column '{col}' not found in DataFrame")
+    string_columns = ['Matricula', 'Marca', 'Modelo']
+    df[string_columns] = df[string_columns].fillna('')
+    # Convert expiration date to datetime if it's not already
+    if not pd.api.types.is_datetime64_any_dtype(df['Vencimiento']):
+        try:
+            df['Vencimiento'] = pd.to_datetime(df['Vencimiento'], format='%d/%m/%Y', errors='coerce')
+        except ValueError:
+            # Try alternative date formats if the primary format fails
+            df['Vencimiento'] = pd.to_datetime(df['Vencimiento'], errors='coerce')
+    
+    # Drop rows where critical fields are missing
+    df = df.dropna(subset=['Compañia', 'Poliza'])
+    
+    # Group by company and policy
+    result = {}
+    
+    # Iterate through each unique company
+    for company in df['Compañia'].unique():
+        company_df = df[df['Compañia'] == company]
+        
+        # Group by policy within the company
+        policies = []
+        for policy_num in company_df['Poliza'].unique():
+            policy_df = company_df[company_df['Poliza'] == policy_num]
+            
+            # Skip if policy_df is empty (shouldn't happen after dropna)
+            if len(policy_df) == 0:
+                continue
+                
+            # Get policy details
+            policy_expiration = policy_df['Vencimiento'].iloc[0]
+            
+            expiration_str = None
+            if not pd.isna(policy_expiration):
+                # Format expiration date as string (or keep as datetime)
+                expiration_str = policy_expiration.strftime('%d/%m/%Y')
+                policy_year = str(policy_expiration.year)
+                
+            # Get all vehicles for this policy
+            vehicles = []
+            empty_license_plate = 0
+            for _, row in policy_df.iterrows():
+                vehicle = {
+                    'license_plate': row['Matricula'],
+                    'brand': row['Marca'],
+                    'model': row['Modelo'],
+                    'year': row['Año']
+                }
+                
+                if not vehicle['license_plate']:
+                    vehicle['license_plate'] = str(empty_license_plate)
+                    empty_license_plate += 1
+                
+                vehicles.append(vehicle)
+            
+            # Create policy dictionary
+            policy = {
+                'number': policy_num,
+                'year': policy_year,
+                'expiration_date': expiration_str,
+                'vehicles': vehicles
+            }
+            policies.append(policy)
+        
+        # Add company to result only if it has policies
+        if policies:
+            result[company] = policies
+    
+    return result
 
 load_csv_data()

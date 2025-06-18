@@ -13,3 +13,6 @@ pandas
 thefuzz
 rapidfuzz
 requests
+python-magic
+PyPDF2
+selenium

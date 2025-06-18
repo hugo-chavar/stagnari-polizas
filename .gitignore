@@ -3,8 +3,10 @@ test*/
 test*
 data/
 venv*/
+chrome*/
 __pycache__/
 *.json
 *.db
 *.db-journal
 update*.txt
+bkp*.txt
