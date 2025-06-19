@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
+from datetime import datetime
 from dotenv import load_dotenv
 from typing import List, Dict, Any
 from pathlib import Path
@@ -181,6 +182,10 @@ class BaseDownloader(ABC):
                     )
                     # TODO: notify user
                     continue
+                if policy["expired"]:
+                    logger.error(f"The expiration date has passed for policy: {policy}")
+                    # TODO: notify user
+                    continue
 
                 policy["obs"] = ""
                 if not policy["downloaded"]:
@@ -238,6 +243,11 @@ class BaseDownloader(ABC):
         self.search_policy()
 
     def is_downloaded(self, policy):
+        exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
+        policy_expired = exp_date < datetime.now().date()
+        policy["expired"] = policy_expired
+        if policy_expired:
+            return
         for vehicle in policy["vehicles"]:
             license_plate = vehicle.get("license_plate")
             folder = self.get_folder_path(policy, license_plate)
@@ -253,9 +263,13 @@ class BaseDownloader(ABC):
         """Check if all policies have been downloaded successfully."""
         for policy in policies:
             self.is_downloaded(policy)
-            policy["downloaded"] = all(
-                vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
-            )
+            if policy["expired"]:
+                policy["downloaded"] = True
+            else:
+                policy["downloaded"] = all(
+                    vehicle.get("files_are_valid", False)
+                    for vehicle in policy["vehicles"]
+                )
 
     def check_if_all_downloaded(self, policies) -> bool:
         """Check if all policies in the list have been downloaded successfully."""
