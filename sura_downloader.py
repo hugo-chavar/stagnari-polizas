@@ -233,6 +233,7 @@ class SuraDownloader(BaseDownloader):
                         starter, FilenameRenameStrategy(folder, filename)
                     )
 
+                    vehicle["mercosur"] = ""
                     starter = SuraClickDownloadStarter(
                         driver=self.driver,
                         locator=Locator(
@@ -240,9 +241,12 @@ class SuraDownloader(BaseDownloader):
                         ),
                     )
                     filename = "mercosur.pdf"  # Certificado de Mercosur
-                    vehicle["mercosur"] = self.download_file_from_starter(
-                        starter, FilenameRenameStrategy(folder, filename)
-                    )
+                    try:
+                        vehicle["mercosur"] = self.download_file_from_starter(
+                            starter, FilenameRenameStrategy(folder, filename)
+                        )
+                    except TimeoutError:
+                        pass
 
                     self.driver.back()
                     vehicle["status"] = "Ok"
