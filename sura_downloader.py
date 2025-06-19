@@ -147,7 +147,6 @@ class SuraDownloader(BaseDownloader):
     def download_policy_files(self, policy: Dict[str, Any], endorsement_line: int):
         """Handle the SURA policy file download."""
         try:
-            policy["obs"] = ""
             e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
             if ramo_cod != "11":
                 policy["obs"] = "No es automovil"

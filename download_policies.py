@@ -38,8 +38,14 @@ for company, policies in policy_data.items():
         # TODO: design database/update database
         # print(f"  Policy: {policy['number']}, Expires: {policy['expiration_date']}")
         # expiration_year = policy['expiration_date'].split('/')[-1]
-        for car in policy["vehicles"]:
-            print(
-                f"{company}/{policy['number']}/{car['license_plate']}/{policy['year']}"
-            )
-            # print(f"    Car: {car['license_plate']} - {car['brand']} {car['model']} ({car['year']})")
+        try:
+            if not policy["obs"]:
+                for car in policy["vehicles"]:
+                    print(
+                        f"{company}/{policy['number']}/{car['license_plate']}/{policy['year']}"
+                    )
+            else:
+                print(f"{company}/{policy['number']}/{policy["obs"]}")
+        except Exception as e:
+            print(f"Error in: {policy}")
+            print(str(e))

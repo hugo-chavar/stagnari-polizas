@@ -181,6 +181,8 @@ class BaseDownloader(ABC):
                     )
                     # TODO: notify user
                     continue
+
+                policy["obs"] = ""
                 if not policy["downloaded"]:
                     logger.info(
                         f"Starts download process for policy: {policy['number']}"
