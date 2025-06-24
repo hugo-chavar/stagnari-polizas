@@ -90,9 +90,10 @@ class SuraDownloader(BaseDownloader):
 
     def find_policy_input(self):
         """Find and return the policy number input field."""
+        loc = Locator(LocatorType.ID, "TxtNroPoliza")
         try:
             self.wait_overlay_invisibility()
-            return self.driver.wait_for_element(Locator(LocatorType.ID, "TxtNroPoliza"))
+            return self.driver.wait_for_element(loc)
         except Exception as e:
             raise CompanyPolicyException(
                 company=self.name(), reason=f"Policy input not found: {str(e)}"
