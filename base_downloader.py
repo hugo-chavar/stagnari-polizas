@@ -180,11 +180,11 @@ class BaseDownloader(ABC):
                     logger.error(
                         f"Policy year {policy['year']} is in the past for policy: {policy}"
                     )
-                    # TODO: notify user
+                    policy["obs"] = "Vencida"
                     continue
                 if policy["expired"]:
                     logger.error(f"The expiration date has passed for policy: {policy}")
-                    # TODO: notify user
+                    policy["obs"] = "Vencida"
                     continue
 
                 policy["obs"] = ""
@@ -224,9 +224,14 @@ class BaseDownloader(ABC):
                     self._search_for_policy(policy)
 
             for v in policy["vehicles"]:
+                v.pop("files_are_valid")
                 if v.get("status") is None:
                     v["status"] = "Skipped"
                     v["reason"] = "No en la web"
+
+            policy["downloaded"] = all(
+                vehicle.get("status", "") == "Ok" for vehicle in policy["vehicles"]
+            )
         except Exception as e:
             error_message = f"Error downloading policy {policy['number']} from {self.name()}: {str(e)}"
             logger.error(error_message)
