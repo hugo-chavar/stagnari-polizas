@@ -44,7 +44,7 @@ for company, policies in policy_data.items():
     ## remove already downloaded policies
     existing_policy_numbers = [p["number"] for p in results]
     random_items = [
-        item for item in random_items if item["number" not in existing_policy_numbers]
+        item for item in random_items if item["number"] not in existing_policy_numbers
     ]
     sura_downloader.process_policies(random_items)
     for policy in random_items:
