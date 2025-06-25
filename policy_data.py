@@ -276,6 +276,7 @@ def get_grouped_policy_data():
 
             # Get all vehicles for this policy
             vehicles = []
+            contains_cars = True
             empty_license_plate = 0
             for _, row in policy_df.iterrows():
                 brand = row["Marca"]
@@ -288,6 +289,7 @@ def get_grouped_policy_data():
                     fuel = None
 
                 is_car = not (fuel is None and brand not in bicycle_brands)
+                contains_cars = contains_cars and is_car
                 vehicle = {
                     "license_plate": license_plate,
                     "brand": brand,
@@ -303,6 +305,7 @@ def get_grouped_policy_data():
                 "number": policy_num,
                 "year": policy_year,
                 "expiration_date": expiration_str,
+                "contains_cars": contains_cars,
                 "vehicles": vehicles,
             }
             policies.append(policy)
