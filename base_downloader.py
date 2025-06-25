@@ -186,7 +186,10 @@ class BaseDownloader(ABC):
                     logger.error(f"The expiration date has passed for policy: {policy}")
                     policy["obs"] = "Vencida"
                     continue
-
+                if not policy["contains_cars"]:
+                    logger.error(f"Policy: {policy} is not a car policy")
+                    policy["obs"] = "No es automovil"
+                    continue
                 policy["obs"] = ""
                 if not policy["downloaded"]:
                     logger.info(
