@@ -231,19 +231,21 @@ class SuraDownloader(BaseDownloader):
                     )
 
                     vehicle["mercosur"] = ""
-                    starter = SuraClickDownloadStarter(
-                        driver=self.driver,
-                        locator=Locator(
-                            LocatorType.XPATH, "//a[contains(text(),'tarjeta verde')]"
-                        ),
-                    )
-                    filename = "mercosur.pdf"  # Certificado de Mercosur
-                    try:
-                        vehicle["mercosur"] = self.download_file_from_starter(
-                            starter, FilenameRenameStrategy(folder, filename)
+                    if not policy.get("soa_only", False):
+                        starter = SuraClickDownloadStarter(
+                            driver=self.driver,
+                            locator=Locator(
+                                LocatorType.XPATH,
+                                "//a[contains(text(),'tarjeta verde')]",
+                            ),
                         )
-                    except TimeoutError:
-                        pass
+                        filename = "mercosur.pdf"  # Certificado de Mercosur
+                        try:
+                            vehicle["mercosur"] = self.download_file_from_starter(
+                                starter, FilenameRenameStrategy(folder, filename)
+                            )
+                        except TimeoutError:
+                            pass
 
                     self.driver.back()
                     vehicle["status"] = "Ok"

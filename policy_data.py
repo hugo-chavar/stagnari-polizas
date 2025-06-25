@@ -266,7 +266,8 @@ def get_grouped_policy_data():
                 continue
 
             # Get policy details
-            policy_expiration = policy_df["Vencimiento"].iloc[0]
+            policy_coverage = policy_df["Cobertura"].iloc[0]
+            soa_only = policy_coverage.strip() == "SOA"
 
             expiration_str = None
             if not pd.isna(policy_expiration):
@@ -274,6 +275,7 @@ def get_grouped_policy_data():
                 expiration_str = policy_expiration.strftime("%d/%m/%Y")
                 policy_year = str(policy_expiration.year)
 
+            policy_expiration = policy_df["Vencimiento"].iloc[0]
             # Get all vehicles for this policy
             vehicles = []
             contains_cars = True
@@ -307,6 +309,7 @@ def get_grouped_policy_data():
                 "expiration_date": expiration_str,
                 "contains_cars": contains_cars,
                 "vehicles": vehicles,
+                "soa_only": soa_only,
             }
             policies.append(policy)
 
