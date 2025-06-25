@@ -250,6 +250,7 @@ def get_grouped_policy_data():
 
     # Group by company and policy
     result = {}
+    bicycle_brands = ["OTRAS MARCAS", "RAVE", "GYROOR", "BIANCHI"]
 
     # Iterate through each unique company
     for company in df["Compañia"].unique():
@@ -282,12 +283,17 @@ def get_grouped_policy_data():
                 if pd.isna(license_plate):
                     license_plate = str(empty_license_plate)
                     empty_license_plate += 1
+                fuel = row["Combustible"]
+                if pd.isna(fuel):
+                    fuel = None
 
+                is_car = not (fuel is None and brand not in bicycle_brands)
                 vehicle = {
                     "license_plate": license_plate,
                     "brand": brand,
                     "model": row["Modelo"],
                     "year": row["Año"],
+                    "is_car": is_car,
                 }
 
                 vehicles.append(vehicle)
