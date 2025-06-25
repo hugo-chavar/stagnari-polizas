@@ -274,10 +274,13 @@ def get_grouped_policy_data():
                 policy_year = str(policy_expiration.year)
 
             policy_coverage = policy_df["Cobertura"].iloc[0]
-            soa_only = policy_coverage.strip() == "SOA"
+            soa_only = False
+            if not pd.isna(policy_coverage):
+                soa_only = policy_coverage.strip() == "SOA"
+
             # Get all vehicles for this policy
             vehicles = []
-            contains_cars = True
+            contains_cars = False
             empty_license_plate = 0
             for _, row in policy_df.iterrows():
                 brand = row["Marca"]
@@ -289,8 +292,8 @@ def get_grouped_policy_data():
                 if pd.isna(fuel):
                     fuel = None
 
-                is_car = not (fuel is None and brand not in bicycle_brands)
-                contains_cars = contains_cars and is_car
+                is_car = not (fuel is None and brand in bicycle_brands)
+                contains_cars = contains_cars or is_car
                 vehicle = {
                     "license_plate": license_plate,
                     "brand": brand,
