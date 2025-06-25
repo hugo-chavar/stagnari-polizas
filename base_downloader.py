@@ -255,6 +255,10 @@ class BaseDownloader(ABC):
         policy_expired = exp_date < datetime.now().date()
         policy["expired"] = policy_expired
         if policy_expired:
+            policy["downloaded"] = True
+            return
+        if not policy["contains_cars"]:
+            policy["downloaded"] = True
             return
         for vehicle in policy["vehicles"]:
             license_plate = vehicle.get("license_plate")
@@ -271,9 +275,7 @@ class BaseDownloader(ABC):
         """Check if all policies have been downloaded successfully."""
         for policy in policies:
             self.is_downloaded(policy)
-            if policy["expired"]:
-                policy["downloaded"] = True
-            else:
+            if not policy["downloaded"]:
                 policy["downloaded"] = all(
                     vehicle.get("files_are_valid", False)
                     for vehicle in policy["vehicles"]
