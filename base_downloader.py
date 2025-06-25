@@ -190,7 +190,7 @@ class BaseDownloader(ABC):
                     logger.error(f"Policy: {policy} is not a car policy")
                     policy["obs"] = "No es automovil"
                     continue
-                policy["obs"] = ""
+
                 if not policy["downloaded"]:
                     logger.info(
                         f"Starts download process for policy: {policy['number']}"
@@ -272,6 +272,7 @@ class BaseDownloader(ABC):
     def mark_downloaded_policies(self, policies):
         """Check if all policies have been downloaded successfully."""
         for policy in policies:
+            policy["obs"] = ""
             self.is_downloaded(policy)
             if not policy["downloaded"]:
                 policy["downloaded"] = all(
