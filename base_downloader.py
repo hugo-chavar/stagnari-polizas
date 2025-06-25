@@ -254,12 +254,10 @@ class BaseDownloader(ABC):
         exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
         policy_expired = exp_date < datetime.now().date()
         policy["expired"] = policy_expired
-        if policy_expired:
-            policy["downloaded"] = True
+        policy["downloaded"] = policy_expired or not policy["contains_cars"]
+        if policy["downloaded"]:
             return
-        if not policy["contains_cars"]:
-            policy["downloaded"] = True
-            return
+
         for vehicle in policy["vehicles"]:
             license_plate = vehicle.get("license_plate")
             folder = self.get_folder_path(policy, license_plate)
@@ -424,6 +422,7 @@ class BaseDownloader(ABC):
                 self.download_policies(policies)
                 logger.info(f"Downloaded files: {policies}")
         except Exception as e:
+            logger.exception("Detailed error:")
             logger.error(f"Error during policy download: {str(e)}")
         finally:
             self.logout()
