@@ -11,15 +11,15 @@ from filter_utils import (
     relax_telefono_filter,
     relax_marca_filter,
     relax_modelo_filter,
-    weighted_fuzzy_search
+    weighted_fuzzy_search,
 )
 
-UPDATE_INTERVAL_FILE = os.getenv('UPDATE_INTERVAL_FILE')
-UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL'))
+UPDATE_INTERVAL_FILE = os.getenv("UPDATE_INTERVAL_FILE")
+UPDATE_INTERVAL = int(os.getenv("UPDATE_INTERVAL"))
 
 GOOGLE_SHEET_URL = os.getenv("GOOGLE_SHEET_URL")
 GOOGLE_SHEET_NAME = os.getenv("GOOGLE_SHEET_NAME")
-CSV_FILE_PATH= os.getenv("CSV_FILE_PATH")
+CSV_FILE_PATH = os.getenv("CSV_FILE_PATH")
 
 df = None
 last_update = None
@@ -31,33 +31,36 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",  # Controls the non-millisecond part
 )
 
+
 def update_interval_has_passed():
     """Check if UPDATE_INTERVAL minutes have passed since last recorded timestamp."""
     try:
         # Get current time rounded to minutes
         current_time = datetime.now().replace(second=0, microsecond=0)
-        
+
         # Read last update time from file
         global last_update
         if not last_update:
-            with open(UPDATE_INTERVAL_FILE, 'r') as f:
+            with open(UPDATE_INTERVAL_FILE, "r") as f:
                 last_update_str = f.read().strip()
-                last_update = datetime.strptime(last_update_str, '%Y-%m-%d %H:%M:%S')
-        
+                last_update = datetime.strptime(last_update_str, "%Y-%m-%d %H:%M:%S")
+
         # Calculate time difference
         time_diff = current_time - last_update
         return time_diff >= timedelta(minutes=UPDATE_INTERVAL)
-    
+
     except (FileNotFoundError, ValueError):
         # File doesn't exist or is empty/corrupt - treat as interval passed
         return True
+
 
 def update_interval():
     """Update the timestamp file with current time (rounded to minutes)."""
     global last_update
     last_update = datetime.now().replace(second=0, microsecond=0)
-    with open(UPDATE_INTERVAL_FILE, 'w') as f:
-        f.write(last_update.strftime('%Y-%m-%d %H:%M:%S'))
+    with open(UPDATE_INTERVAL_FILE, "w") as f:
+        f.write(last_update.strftime("%Y-%m-%d %H:%M:%S"))
+
 
 def load_csv_data():
     global df
@@ -67,17 +70,19 @@ def load_csv_data():
         update_interval()
     else:
         logger.info("UPDATE_INTERVAL has not passed yet - skipping updates")
-    
+
     df = pd.read_csv(CSV_FILE_PATH)
 
+
 def remove_words(list, words):
-    pattern = r'\b(?:' + '|'.join(map(re.escape, words)) + r')\b'
+    pattern = r"\b(?:" + "|".join(map(re.escape, words)) + r")\b"
     cleaned_list = []
     for text in list:
         # Remove suffix and replace multiple spaces with a single space
-        cleaned_text = re.sub(r' +', ' ', re.sub(pattern, '', text).strip())
+        cleaned_text = re.sub(r" +", " ", re.sub(pattern, "", text).strip())
         cleaned_list.append(cleaned_text)
     return cleaned_list
+
 
 def get_surnames_prompt():
     """
@@ -92,12 +97,12 @@ def get_surnames_prompt():
     all_surnames = [s for s in " ".join(surnames).split() if len(s) > 2]
     companies = [s for s in client_series if "," not in s]
     companies = [s.replace("(", "").replace(")", "") for s in companies]
-    companies = [s.replace('"', '').replace('.', ' ') for s in companies]
+    companies = [s.replace('"', "").replace(".", " ") for s in companies]
 
     words_to_remove = ["SA", "SRL", "SAS", "LTDA", "SUC", "-", "CIA", "&"]
 
     cleaned_companies = remove_words(companies, words_to_remove)
-    
+
     sorted_surnames = sorted({s.upper() for s in all_surnames}, key=lambda s: s.upper())
     companies_str = ",".join(cleaned_companies)
     surnames_str = ",".join(sorted_surnames)
@@ -106,8 +111,9 @@ Companies: {companies_str}
 Surnames: {surnames_str}
 If you don't find a a good match relax the filter so it can catch more results. For example, if user asks for "Ruiz", use "Rui" to include more results.
 """
-    
+
     return prompt
+
 
 def apply_filter(query_string, columns, query_fields, level=0):
     relaxed_query_string = query_string
@@ -131,13 +137,17 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 query_string = relax_marca_filter(query_string)
                 query_change = True
             if query_change:
-                return apply_filter(query_string, columns, query_fields, level=new_level)
+                return apply_filter(
+                    query_string, columns, query_fields, level=new_level
+                )
             else:
                 level = new_level
         if level == 1:
-            if query_fields.get('Cliente'):
+            if query_fields.get("Cliente"):
                 logger.info("Performing fuzzy search on Cliente field...")
-                top_matches = weighted_fuzzy_search(df, 'Cliente', query_fields.get('Cliente'), top_n=5)
+                top_matches = weighted_fuzzy_search(
+                    df, "Cliente", query_fields.get("Cliente"), top_n=5
+                )
                 if columns:
                     top_matches = top_matches[columns]
                 csv_string, has_rows = get_csv_string(top_matches)
@@ -147,8 +157,10 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 else:
                     logger.info("Fuzzy search on Cliente found rows:")
                     logger.info(csv_string)
-            elif query_fields.get('Matricula'):
-                top_matches = weighted_fuzzy_search(df, 'Matricula', query_fields.get('Matricula'), top_n=5)
+            elif query_fields.get("Matricula"):
+                top_matches = weighted_fuzzy_search(
+                    df, "Matricula", query_fields.get("Matricula"), top_n=5
+                )
                 if columns:
                     top_matches = top_matches[columns]
                 csv_string, has_rows = get_csv_string(top_matches)
@@ -165,7 +177,9 @@ def apply_filter(query_string, columns, query_fields, level=0):
             if "Cliente." in query_string:
                 logger.info("Relaxing cliente filter and retrying level 2...")
                 query_string = relax_cliente_filter_level2(query_string)
-                return apply_filter(query_string, columns, query_fields, level=new_level)
+                return apply_filter(
+                    query_string, columns, query_fields, level=new_level
+                )
         if level == 3:
             if "&" in query_string or " and " in query_string:
                 logger.info("Query string contains '&' - removing it")
@@ -173,109 +187,125 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 return apply_filter(query_string, columns, query_fields)
     return csv_string
 
+
 def execute_filter(query_string, columns):
     global df
     result = None
     if columns:
-        result = df.query(query_string, engine='python')[columns]
+        result = df.query(query_string, engine="python")[columns]
     else:
-        result = df.query(query_string, engine='python')
+        result = df.query(query_string, engine="python")
     return get_csv_string(result)
 
+
 def get_csv_string(result):
-    csv_string = result.to_csv(index=False, lineterminator='\n')
-    line_count = csv_string.count('\n') - 1
+    csv_string = result.to_csv(index=False, lineterminator="\n")
+    line_count = csv_string.count("\n") - 1
     has_rows = line_count > 0
-    
+
     # Log only up to 10 rows with ellipsis if there are more
     if has_rows:
         logger.info("Filtered data:")
-        lines = csv_string.split('\n')
+        lines = csv_string.split("\n")
         if line_count > 10:
             # Take first 10 rows and add ellipsis
             shortened_lines = lines[:11]  # 10 data rows + header
-            shortened_csv = '\n'.join(shortened_lines) + '\n...'
+            shortened_csv = "\n".join(shortened_lines) + "\n..."
             logger.info(shortened_csv)
         else:
             logger.info(csv_string)
-    
+
     return csv_string, has_rows
+
 
 def get_grouped_policy_data():
     global df
     # Make sure required columns exist
-    required_columns = ['Compañia', 'Poliza', 'Vencimiento', 'Matricula', 'Marca', 'Modelo', 'Año']
+    required_columns = [
+        "Compañia",
+        "Poliza",
+        "Vencimiento",
+        "Matricula",
+        "Marca",
+        "Modelo",
+        "Año",
+    ]
     for col in required_columns:
         if col not in df.columns:
             raise ValueError(f"Column '{col}' not found in DataFrame")
-    string_columns = ['Matricula', 'Marca', 'Modelo']
-    df[string_columns] = df[string_columns].fillna('')
+    string_columns = ["Matricula", "Marca", "Modelo"]
+    df[string_columns] = df[string_columns].fillna("")
     # Convert expiration date to datetime if it's not already
-    if not pd.api.types.is_datetime64_any_dtype(df['Vencimiento']):
+    if not pd.api.types.is_datetime64_any_dtype(df["Vencimiento"]):
         try:
-            df['Vencimiento'] = pd.to_datetime(df['Vencimiento'], format='%d/%m/%Y', errors='coerce')
+            df["Vencimiento"] = pd.to_datetime(
+                df["Vencimiento"], format="%d/%m/%Y", errors="coerce"
+            )
         except ValueError:
             # Try alternative date formats if the primary format fails
-            df['Vencimiento'] = pd.to_datetime(df['Vencimiento'], errors='coerce')
-    
+            df["Vencimiento"] = pd.to_datetime(df["Vencimiento"], errors="coerce")
+
     # Drop rows where critical fields are missing
-    df = df.dropna(subset=['Compañia', 'Poliza'])
-    
+    df = df.dropna(subset=["Compañia", "Poliza"])
+
     # Group by company and policy
     result = {}
-    
+
     # Iterate through each unique company
-    for company in df['Compañia'].unique():
-        company_df = df[df['Compañia'] == company]
-        
+    for company in df["Compañia"].unique():
+        company_df = df[df["Compañia"] == company]
+
         # Group by policy within the company
         policies = []
-        for policy_num in company_df['Poliza'].unique():
-            policy_df = company_df[company_df['Poliza'] == policy_num]
-            
+        for policy_num in company_df["Poliza"].unique():
+            policy_df = company_df[company_df["Poliza"] == policy_num]
+
             # Skip if policy_df is empty (shouldn't happen after dropna)
             if len(policy_df) == 0:
                 continue
-                
+
             # Get policy details
-            policy_expiration = policy_df['Vencimiento'].iloc[0]
-            
+            policy_expiration = policy_df["Vencimiento"].iloc[0]
+
             expiration_str = None
             if not pd.isna(policy_expiration):
                 # Format expiration date as string (or keep as datetime)
-                expiration_str = policy_expiration.strftime('%d/%m/%Y')
+                expiration_str = policy_expiration.strftime("%d/%m/%Y")
                 policy_year = str(policy_expiration.year)
-                
+
             # Get all vehicles for this policy
             vehicles = []
             empty_license_plate = 0
             for _, row in policy_df.iterrows():
-                vehicle = {
-                    'license_plate': row['Matricula'],
-                    'brand': row['Marca'],
-                    'model': row['Modelo'],
-                    'year': row['Año']
-                }
-                
-                if not vehicle['license_plate']:
-                    vehicle['license_plate'] = str(empty_license_plate)
+                brand = row["Marca"]
+                license_plate = row["Matricula"]
+                if pd.isna(license_plate):
+                    license_plate = str(empty_license_plate)
                     empty_license_plate += 1
-                
+
+                vehicle = {
+                    "license_plate": license_plate,
+                    "brand": brand,
+                    "model": row["Modelo"],
+                    "year": row["Año"],
+                }
+
                 vehicles.append(vehicle)
-            
+
             # Create policy dictionary
             policy = {
-                'number': policy_num,
-                'year': policy_year,
-                'expiration_date': expiration_str,
-                'vehicles': vehicles
+                "number": policy_num,
+                "year": policy_year,
+                "expiration_date": expiration_str,
+                "vehicles": vehicles,
             }
             policies.append(policy)
-        
+
         # Add company to result only if it has policies
         if policies:
             result[company] = policies
-    
+
     return result
+
 
 load_csv_data()
