@@ -2,17 +2,18 @@ import json
 import logging
 import sys
 import random
-from policy_data import get_grouped_policy_data, load_csv_data, df
-from sura_downloader import SuraDownloader
-from policy_driver import PolicyDriver
-
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filename="sura_downloader_test1.log",
-    # handlers=[logging.StreamHandler(sys.stdout)],  # Explicitly use stdout
+    force=True,
 )
+# handlers=[logging.StreamHandler(sys.stdout)],  # Explicitly use stdout
+
+from policy_data import get_grouped_policy_data, load_csv_data
+from sura_downloader import SuraDownloader
+from policy_driver import PolicyDriver
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ policy_data = get_grouped_policy_data()
 #     c.write(r)
 
 results = []
-with open("policy_results2.json", encoding="utf-8", mode="r") as c:
+with open("policy_results.json", encoding="utf-8", mode="r") as c:
     results = json.load(c)
 
 sura_downloader = SuraDownloader(PolicyDriver(headless=False))
@@ -61,6 +62,7 @@ for company, policies in policy_data.items():
         except Exception as e:
             print(f"Error in: {policy}")
             print(str(e))
+            logging.exception("Detailed error:")
 
     results_sorted = sorted(results, key=lambda policy: policy["number"])
     with open("policy_results.json", encoding="utf-8", mode="w") as c:
