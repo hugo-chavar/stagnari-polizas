@@ -19,6 +19,19 @@ class Policy:
     timestamp: datetime = None
 
 
+@dataclass
+class Car:
+    company: str
+    policy_number: str
+    license_plate: str
+    brand: str
+    model: str
+    year: int
+    soa_file_path: Optional[str] = None
+    mercosur_file_path: Optional[str] = None
+    timestamp: Optional[datetime] = None
+
+
 def init_db():
     """Initialize the database and create tables if they don't exist"""
     with sqlite3.connect(DATABASE_NAME) as conn:
@@ -368,6 +381,68 @@ def get_policy(company: str, policy_number: str) -> Optional[Policy]:
                 ),
             )
         return None
+
+
+def insert_car(car: Car) -> None:
+    """Insert a new car into the database"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO car (
+                company, policy_number, license_plate,
+                brand, model, year,
+                soa_file_path, mercosur_file_path
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                car.company,
+                car.policy_number,
+                car.license_plate,
+                car.brand,
+                car.model,
+                car.year,
+                car.soa_file_path,
+                car.mercosur_file_path,
+            ),
+        )
+        conn.commit()
+
+
+def get_cars_by_policy(company: str, policy_number: str) -> List[Car]:
+    """Retrieve all cars for a specific policy"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT 
+                company, policy_number, license_plate,
+                brand, model, year,
+                soa_file_path, mercosur_file_path, timestamp
+            FROM car
+            WHERE company = ? AND policy_number = ?
+            """,
+            (company, policy_number),
+        )
+        return [
+            Car(
+                company=row["company"],
+                policy_number=row["policy_number"],
+                license_plate=row["license_plate"],
+                brand=row["brand"],
+                model=row["model"],
+                year=row["year"],
+                soa_file_path=row["soa_file_path"],
+                mercosur_file_path=row["mercosur_file_path"],
+                timestamp=(
+                    datetime.fromisoformat(row["timestamp"])
+                    if row["timestamp"]
+                    else None
+                ),
+            )
+            for row in cursor.fetchall()
+        ]
 
 
 # Initialize the database when this module is imported
