@@ -1,22 +1,9 @@
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
 
 DATABASE_NAME = "chat_history.db"
-
-
-@dataclass
-class Policy:
-    company: str
-    policy_number: str
-    year: int
-    expiration_date: date
-    downloaded: bool = False
-    contains_cars: bool = False
-    soa_only: bool = False
-    obs: Optional[str] = None
-    timestamp: datetime = None
 
 
 @dataclass
@@ -30,6 +17,24 @@ class Car:
     soa_file_path: Optional[str] = None
     mercosur_file_path: Optional[str] = None
     timestamp: Optional[datetime] = None
+
+
+@dataclass
+class Policy:
+    company: str
+    policy_number: str
+    year: int
+    expiration_date: date
+    downloaded: bool = False
+    contains_cars: bool = False
+    soa_only: bool = False
+    obs: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    cars: List[Car] = field(default_factory=list)
+
+    def load_cars(self) -> None:
+        """Load associated cars from database"""
+        self.cars = get_cars_by_policy(self.company, self.policy_number)
 
 
 def init_db():
@@ -443,6 +448,14 @@ def get_cars_by_policy(company: str, policy_number: str) -> List[Car]:
             )
             for row in cursor.fetchall()
         ]
+
+
+def get_policy_with_cars(company: str, policy_number: str) -> Optional[Policy]:
+    """Get a policy with its cars in one query"""
+    policy = get_policy(company, policy_number)
+    if policy and policy.contains_cars:
+        policy.load_cars()
+    return policy
 
 
 # Initialize the database when this module is imported
