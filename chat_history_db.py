@@ -1,8 +1,22 @@
 import sqlite3
-from typing import List, Tuple
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from typing import List, Tuple, Optional
+from datetime import datetime, timedelta, date
 
 DATABASE_NAME = "chat_history.db"
+
+
+@dataclass
+class Policy:
+    company: str
+    policy_number: str
+    year: int
+    expiration_date: date
+    downloaded: bool = False
+    contains_cars: bool = False
+    soa_only: bool = False
+    obs: Optional[str] = None
+    timestamp: datetime = None
 
 
 def init_db():
@@ -294,6 +308,66 @@ def get_car(
         )
         result = cursor.fetchone()
         return result if result else None
+
+
+def insert_policy(policy: Policy) -> None:
+    """Insert a new policy into the database"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO policy (
+                company, policy_number, year, expiration_date,
+                downloaded, contains_cars, soa_only, obs
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                policy.company,
+                policy.policy_number,
+                policy.year,
+                policy.expiration_date,
+                policy.downloaded,
+                policy.contains_cars,
+                policy.soa_only,
+                policy.obs,
+            ),
+        )
+        conn.commit()
+
+
+def get_policy(company: str, policy_number: str) -> Optional[Policy]:
+    """Retrieve a policy by company and policy number"""
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        conn.row_factory = sqlite3.Row  # To access columns by name
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT 
+                company, policy_number, year, expiration_date,
+                downloaded, contains_cars, soa_only, obs, timestamp
+            FROM policy
+            WHERE company = ? AND policy_number = ?
+            """,
+            (company, policy_number),
+        )
+        row = cursor.fetchone()
+        if row:
+            return Policy(
+                company=row["company"],
+                policy_number=row["policy_number"],
+                year=row["year"],
+                expiration_date=date.fromisoformat(row["expiration_date"]),
+                downloaded=bool(row["downloaded"]),
+                contains_cars=bool(row["contains_cars"]),
+                soa_only=bool(row["soa_only"]),
+                obs=row["obs"],
+                timestamp=(
+                    datetime.fromisoformat(row["timestamp"])
+                    if row["timestamp"]
+                    else None
+                ),
+            )
+        return None
 
 
 # Initialize the database when this module is imported
