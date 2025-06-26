@@ -59,6 +59,7 @@ def init_db():
         cursor.execute(
             """
         CREATE TABLE IF NOT EXISTS car (
+            company TEXT,
             policy_number TEXT,
             license_plate TEXT,
             brand TEXT,
@@ -67,7 +68,7 @@ def init_db():
             soa_file_path TEXT,
             mercosur_file_path TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (policy_number, license_plate)
+            PRIMARY KEY (company, policy_number, license_plate)
         )
         """
         )
@@ -75,15 +76,16 @@ def init_db():
         cursor.execute(
             """
         CREATE TABLE IF NOT EXISTS policy (
+            company TEXT,
             policy_number TEXT,
             year INTEGER,
             expiration_date DATE,
             downloaded BOOLEAN,
-            processed BOOLEAN,
-            is_car BOOLEAN,
+            contains_cars BOOLEAN,
+            soa_only BOOLEAN,
             obs TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (policy_number)
+            PRIMARY KEY (company, policy_number)
         )
         """
         )
@@ -198,6 +200,7 @@ def get_all_users() -> List[str]:
 
 
 def add_car(
+    company: str,
     policy_number: str,
     license_plate: str,
     brand: str,
@@ -211,8 +214,9 @@ def add_car(
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO car (policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO car (company, policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
+                    company,
                     policy_number,
                     license_plate,
                     brand,
@@ -229,6 +233,7 @@ def add_car(
 
 
 def update_car(
+    company: str,
     policy_number: str,
     license_plate: str,
     brand: str = None,
@@ -265,10 +270,11 @@ def update_car(
         # Add timestamp update
         fields.append("timestamp = CURRENT_TIMESTAMP")
 
+        values.append(company)
         values.append(policy_number)
         values.append(license_plate)
 
-        query = f"UPDATE car SET {', '.join(fields)} WHERE policy_number = ? AND license_plate = ?"
+        query = f"UPDATE car SET {', '.join(fields)} WHERE company = ? AND policy_number = ? AND license_plate = ?"
 
         cursor.execute(query, tuple(values))
         conn.commit()
