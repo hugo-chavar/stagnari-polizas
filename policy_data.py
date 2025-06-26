@@ -299,7 +299,6 @@ def get_grouped_policy_data():
                     "brand": brand,
                     "model": row["Modelo"],
                     "year": row["Año"],
-                    "is_car": is_car,
                 }
 
                 vehicles.append(vehicle)
