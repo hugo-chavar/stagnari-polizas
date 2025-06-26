@@ -2,7 +2,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
-from .models import Policy, Car
+from models import Policy, Car
 
 DATABASE_NAME = "chat_history.db"
 
@@ -300,6 +300,11 @@ def get_car(
 
 def insert_policy(policy: Policy) -> None:
     """Insert a new policy into the database"""
+    policy_db = get_policy(policy.company, policy.policy_number)
+    if policy_db:
+        if not delete_policy(policy_db):
+            return
+
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -321,6 +326,37 @@ def insert_policy(policy: Policy) -> None:
             ),
         )
         conn.commit()
+
+
+def delete_policy(policy: Policy) -> bool:
+    """
+    Delete a policy and all its associated cars from the database
+    Returns True if successful, False if policy didn't exist
+    """
+    try:
+        with sqlite3.connect(DATABASE_NAME) as conn:
+            cursor = conn.cursor()
+
+            # First delete all cars associated with the policy
+            cursor.execute(
+                "DELETE FROM car WHERE company = ? AND policy_number = ?",
+                (policy.company, policy.policy_number),
+            )
+
+            # Then delete the policy itself
+            cursor.execute(
+                "DELETE FROM policy WHERE company = ? AND policy_number = ?",
+                (policy.company, policy.policy_number),
+            )
+
+            conn.commit()
+
+            # Return True if any rows were affected
+            return cursor.rowcount > 0
+
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return False
 
 
 def get_policy(company: str, policy_number: str) -> Optional[Policy]:
