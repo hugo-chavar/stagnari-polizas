@@ -2,39 +2,9 @@ import sqlite3
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
+from .models import Policy, Car
 
 DATABASE_NAME = "chat_history.db"
-
-
-@dataclass
-class Car:
-    company: str
-    policy_number: str
-    license_plate: str
-    brand: str
-    model: str
-    year: int
-    soa_file_path: Optional[str] = None
-    mercosur_file_path: Optional[str] = None
-    timestamp: Optional[datetime] = None
-
-
-@dataclass
-class Policy:
-    company: str
-    policy_number: str
-    year: int
-    expiration_date: date
-    downloaded: bool = False
-    contains_cars: bool = False
-    soa_only: bool = False
-    obs: Optional[str] = None
-    timestamp: Optional[datetime] = None
-    cars: List[Car] = field(default_factory=list)
-
-    def load_cars(self) -> None:
-        """Load associated cars from database"""
-        self.cars = get_cars_by_policy(self.company, self.policy_number)
 
 
 def init_db():
