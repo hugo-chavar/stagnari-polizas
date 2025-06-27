@@ -144,6 +144,7 @@ def apply_filter(query_string, columns, query_fields, level=0):
                 level = new_level
         if level == 1:
             if query_fields.get("Cliente"):
+                query_fields["Cliente"] = query_fields.get("Cliente").replace(".*", " ")
                 logger.info("Performing fuzzy search on Cliente field...")
                 top_matches = weighted_fuzzy_search(
                     df, "Cliente", query_fields.get("Cliente"), top_n=5
