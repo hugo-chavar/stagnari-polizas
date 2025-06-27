@@ -62,7 +62,7 @@ new_policy_data = {}
 
 for company, policies in policy_data.items():
 
-    kept_policies = [p for p in policies if need_to_be_processed(p)]
+    kept_policies = [p for p in policies if need_to_be_processed(company, p)]
     if kept_policies:
         new_policy_data[company] = kept_policies
 
