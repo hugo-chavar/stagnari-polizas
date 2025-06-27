@@ -2,7 +2,9 @@ import json
 import logging
 import sys
 import random
+import sqlite3
 from datetime import datetime
+from typing import List, Dict
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,6 +15,7 @@ logging.basicConfig(
 # handlers=[logging.StreamHandler(sys.stdout)],  # Explicitly use stdout
 
 import chat_history_db as db
+from models import Policy, Car
 from policy_data import get_grouped_policy_data, load_csv_data
 from sura_downloader import SuraDownloader
 from policy_driver import PolicyDriver
@@ -34,7 +37,7 @@ def log_policy(company, policy):
 
 
 def need_to_be_processed(company, policy):
-    policy_db = db.get_policy_with_cars(company, policy)
+    policy_db = db.get_policy_with_cars(company, policy["number"])
     policy["db"] = policy_db
     if not policy_db:
         return True
@@ -50,6 +53,55 @@ def need_to_be_processed(company, policy):
         return True
 
     return False
+
+
+def insert_processed_policies(company: str, policies: List[Dict]) -> None:
+    """
+    Insert processed policies using existing database functions.
+    Handles:
+    - Date parsing from "dd/mm/yyyy"
+    - Field filtering
+    - Policy and vehicle insertion
+    - Error handling
+    """
+    for policy_data in policies:
+        try:
+            expiration_date = datetime.strptime(
+                policy_data["expiration_date"], "%d/%m/%Y"
+            ).date()
+
+            policy = Policy(
+                company=company,
+                policy_number=policy_data["number"],
+                year=int(policy_data["year"]),
+                expiration_date=expiration_date,
+                downloaded=policy_data.get("downloaded", False),
+                contains_cars=policy_data.get("contains_cars", False),
+                soa_only=policy_data.get("soa_only", False),
+                obs=policy_data.get("obs", ""),
+            )
+
+            db.insert_policy(policy)
+
+            for vehicle_data in policy_data.get("vehicles", []):
+                car = Car(
+                    company=company,
+                    policy_number=policy_data["number"],
+                    license_plate=vehicle_data["license_plate"],
+                    brand=vehicle_data["brand"],
+                    model=vehicle_data["model"],
+                    year=vehicle_data["year"],
+                    soa_file_path=vehicle_data.get("soa"),
+                    mercosur_file_path=vehicle_data.get("mercosur"),
+                )
+                db.insert_car(car)
+
+        except ValueError as e:
+            print(f"Skipping policy {policy_data.get('number')} due to error: {e}")
+        except KeyError as e:
+            print(f"Skipping policy due to missing field: {e}")
+        except sqlite3.Error as e:
+            print(f"Database error with policy {policy_data.get('number')}: {e}")
 
 
 logger = logging.getLogger(__name__)
@@ -87,9 +139,9 @@ for company, policies in new_policy_data.items():
     ]
     sura_downloader.process_policies(random_items)
     for policy in random_items:
-        # TODO: design database/update database
         results.append(policy)
         log_policy(company, policy)
+        insert_processed_policies(company, random_items)
 
     results_sorted = sorted(results, key=lambda policy: policy["number"])
     with open("policy_results.json", encoding="utf-8", mode="w") as c:
