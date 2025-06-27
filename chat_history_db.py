@@ -2,7 +2,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
-from .models import Policy, Car
+from models import Policy, Car
 
 DATABASE_NAME = "chat_history.db"
 
@@ -300,9 +300,9 @@ def get_car(
 
 def insert_policy(policy: Policy) -> None:
     """Insert a new policy into the database"""
-    policy = get_policy(policy.company, policy.policy_number)
-    if policy:
-        if not delete_policy(Policy):
+    policy_db = get_policy(policy.company, policy.policy_number)
+    if policy_db:
+        if not delete_policy(policy_db):
             return
 
     with sqlite3.connect(DATABASE_NAME) as conn:
