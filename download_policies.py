@@ -20,6 +20,8 @@ from policy_data import get_grouped_policy_data, load_csv_data
 from sura_downloader import SuraDownloader
 from policy_driver import PolicyDriver
 
+logger = logging.getLogger(__name__)
+
 
 def need_to_be_processed(company, policy):
     policy_db = db.get_policy_with_cars(company, policy["number"])
@@ -86,14 +88,14 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
                 db.insert_car(car)
 
         except ValueError as e:
-            print(f"Skipping policy {policy_data.get('number')} due to error: {e}")
+            logger.error(
+                f"Skipping policy {policy_data.get('number')} due to error: {e}"
+            )
         except KeyError as e:
-            print(f"Skipping policy due to missing field: {e}")
+            logger.error(f"Skipping policy due to missing field: {e}")
         except sqlite3.Error as e:
-            print(f"Database error with policy {policy_data.get('number')}: {e}")
+            logger.error(f"Database error with policy {policy_data.get('number')}: {e}")
 
-
-logger = logging.getLogger(__name__)
 
 load_csv_data()
 
