@@ -9,10 +9,9 @@ from typing import List, Dict
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="sura_downloader_test1.log",
+    handlers=[logging.StreamHandler(sys.stdout)],
     force=True,
 )
-# handlers=[logging.StreamHandler(sys.stdout)],  # Explicitly use stdout
 
 import chat_history_db as db
 from models import Policy, Car
