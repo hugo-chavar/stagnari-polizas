@@ -17,11 +17,13 @@ RUN sudo apt-get update && \
     libmagic1 \
     && sudo rm -rf /var/lib/apt/lists/*
 
-# Use the existing virtual environment
-ENV PATH /opt/venv/bin:$PATH
+# Create and activate a new virtual environment
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+
 COPY requirements.txt .
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
