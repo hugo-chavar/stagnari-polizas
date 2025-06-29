@@ -99,10 +99,11 @@ class PolicyDriver:
     def __init__(self, headless=True):
         self.folder = os.getenv("TMP_DOWNLOAD_FOLDER")
         self.screenshot_folder = os.getenv("DEBUG_SCREENSHOT_FOLDER", self.folder)
-        self.executable_path = os.getenv("DRIVER_PATH")
+        # self.executable_path = os.getenv("DRIVER_PATH")
         self.screenshot_counter = 0
 
-        chrome_options = Options()
+        # chrome_options = Options()
+        chrome_options = webdriver.ChromeOptions()
         if headless:
             chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
@@ -130,8 +131,13 @@ class PolicyDriver:
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
-        service = Service(executable_path=self.executable_path)
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+        # service = Service(executable_path=self.executable_path)
+        # self.driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        # Connect to the Selenium server running in the container
+        self.driver = webdriver.Remote(
+            command_executor="http://localhost:4444/wd/hub", options=chrome_options
+        )
         self.driver.implicitly_wait(10)
         logger.info("WebDriver instance created")
 
