@@ -8,7 +8,7 @@ RUN mkdir /tmp/scr && chmod -R a+rwx /tmp/scr
 
 RUN sudo apt-get update && \
     sudo apt-get install -y \
-    python3.11 \
+    python3 \
     python3-pip \
     cron \
     libmagic1 \
