@@ -2,7 +2,7 @@ FROM selenium/standalone-chrome:latest
 
 WORKDIR /app
 
-RUN chmod a+rwx /srv/shared_files
+RUN mkdir -p /srv/shared_files && chmod a+rwx /srv/shared_files
 RUN mkdir -p /tmp/pdf && chmod -R a+rwx /tmp/pdf
 RUN mkdir /tmp/scr && chmod -R a+rwx /tmp/scr
 
