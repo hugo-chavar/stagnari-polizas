@@ -1,39 +1,46 @@
 FROM selenium/standalone-chrome:latest
 
+USER root
 WORKDIR /app
 
-RUN sudo mkdir -p /srv/shared_files && \
-    sudo chmod a+rwx /srv/shared_files && \
-    mkdir -p /tmp/pdf && \
-    chmod -R a+rwx /tmp/pdf && \
-    mkdir /tmp/scr && \
-    chmod -R a+rwx /tmp/scr
+# Clean up duplicate apt sources
+RUN sudo rm -f /etc/apt/sources.list.d/ubuntu.sources && \
+    sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
 
-RUN sudo apt-get update && \
-    sudo apt-get install -y \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y \
     python3 \
     python3-pip \
     cron \
-    libmagic1 \
-    && sudo rm -rf /var/lib/apt/lists/*
+    libmagic1
 
-# Create and activate a new virtual environment
-RUN sudo mkdir /app/venv && sudo chown seluser:seluser /app/venv
-RUN python3 -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
+# Clean up apt cache
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
+# Create directories with correct permissions
+RUN mkdir -p /srv/shared_files /tmp/pdf /tmp/scr && \
+    chmod -R 777 /srv/shared_files /tmp/pdf /tmp/scr && \
+    chown -R seluser:seluser /app
+
+# Install packages globally (but isolated in container)
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 COPY cronjob /etc/cron.d/cronjob
-RUN sudo chmod 0644 /etc/cron.d/cronjob && \
-    sudo crontab /etc/cron.d/cronjob && \
-    sudo touch /var/log/cron.log
+RUN chmod 0644 /etc/cron.d/cronjob && \
+    crontab /etc/cron.d/cronjob && \
+    touch /var/log/cron.log
 
 EXPOSE 8001
 EXPOSE 4444
 
-CMD bash -c "cron && uvicorn main:app --host 0.0.0.0 --port 8001"
+# Verify uvicorn is installed
+RUN which uvicorn && uvicorn --version
+
+# Switch to seluser and run
+USER seluser
+CMD ["bash", "-c", "cron && uvicorn main:app --host 0.0.0.0 --port 8001"]
