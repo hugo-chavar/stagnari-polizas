@@ -18,6 +18,7 @@ RUN sudo apt-get update && \
     && sudo rm -rf /var/lib/apt/lists/*
 
 # Create and activate a new virtual environment
+RUN sudo mkdir /app/venv && sudo chown seluser:seluser /app/venv
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
