@@ -19,10 +19,13 @@ RUN apt-get update && \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create directories with correct permissions
+# Set directory structure and permissions
 RUN mkdir -p /srv/shared_files /tmp/pdf /tmp/scr && \
-    chmod -R 777 /srv/shared_files /tmp/pdf /tmp/scr && \
-    chown -R seluser:seluser /app
+    chown -R seluser:seluser /app /srv/shared_files /tmp/pdf /tmp/scr && \
+    chmod 755 /app && \
+    chmod 775 /app/data && \
+    chmod 775 /srv/shared_files /tmp/pdf /tmp/scr && \
+    chmod 664 /app/update_interval.txt /app/data/polizas.csv
 
 # Install packages globally (but isolated in container)
 COPY requirements.txt .
