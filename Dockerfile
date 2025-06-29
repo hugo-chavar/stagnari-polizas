@@ -2,9 +2,12 @@ FROM selenium/standalone-chrome:latest
 
 WORKDIR /app
 
-RUN sudo mkdir -p /srv/shared_files && sudo chmod a+rwx /srv/shared_files
-RUN mkdir -p /tmp/pdf && chmod -R a+rwx /tmp/pdf
-RUN mkdir /tmp/scr && chmod -R a+rwx /tmp/scr
+RUN sudo mkdir -p /srv/shared_files && \
+    sudo chmod a+rwx /srv/shared_files && \
+    mkdir -p /tmp/pdf && \
+    chmod -R a+rwx /tmp/pdf && \
+    mkdir /tmp/scr && \
+    chmod -R a+rwx /tmp/scr
 
 RUN sudo apt-get update && \
     sudo apt-get install -y \
@@ -14,7 +17,8 @@ RUN sudo apt-get update && \
     libmagic1 \
     && sudo rm -rf /var/lib/apt/lists/*
 
-ENV PIP_ROOT_USER_ACTION=ignore
+# Use the existing virtual environment
+ENV PATH /opt/venv/bin:$PATH
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install --no-cache-dir -r requirements.txt
