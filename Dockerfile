@@ -13,7 +13,8 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     cron \
-    libmagic1
+    libmagic1 \
+    vim
 
 # Clean up apt cache
 RUN apt-get clean && \
