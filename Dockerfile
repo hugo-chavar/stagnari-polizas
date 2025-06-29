@@ -8,7 +8,7 @@ RUN mkdir /tmp/scr && chmod -R a+rwx /tmp/scr
 
 RUN sudo apt-get update && \
     sudo apt-get install -y \
-    python3.13 \
+    python3.11 \
     python3-pip \
     cron \
     libmagic1 \
@@ -16,8 +16,8 @@ RUN sudo apt-get update && \
 
 ENV PIP_ROOT_USER_ACTION=ignore
 COPY requirements.txt .
-RUN python3.13 -m pip install --upgrade pip && \
-    python3.13 -m pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
