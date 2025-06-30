@@ -460,7 +460,7 @@ def get_policy_with_cars(company: str, policy_number: str) -> Optional[Policy]:
     """Get a policy with its cars in one query"""
     policy = get_policy(company, policy_number)
     if policy and policy.contains_cars:
-        policy.load_cars()
+        policy.cars = get_cars_by_policy(company, policy_number)
     return policy
 
 
