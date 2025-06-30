@@ -19,6 +19,9 @@ RUN apt-get update && \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN usermod -u 1000 seluser && \
+    groupmod -g 1000 seluser
+
 # Set directory structure and permissions
 RUN mkdir -p /srv/shared_files /tmp/pdf /tmp/scr && \
     sudo chown -R seluser:seluser /app /srv/shared_files /tmp/pdf /tmp/scr
