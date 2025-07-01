@@ -252,6 +252,14 @@ def get_grouped_policy_data():
     # Group by company and policy
     result = {}
     bicycle_brands = ["OTRAS MARCAS", "RAVE", "GYROOR", "BIANCHI"]
+    cancelled_policies = [
+        "1938091",
+        "1940520",
+        "2123126",
+        "2138316",
+        "2160105",
+        "2172904",
+    ]
 
     # Iterate through each unique company
     for company in df["Compañia"].unique():
@@ -260,6 +268,7 @@ def get_grouped_policy_data():
         # Group by policy within the company
         policies = []
         for policy_num in company_df["Poliza"].unique():
+            cancelled = policy_num in cancelled_policies
             policy_df = company_df[company_df["Poliza"] == policy_num]
 
             # Skip if policy_df is empty (shouldn't happen after dropna)
@@ -292,8 +301,13 @@ def get_grouped_policy_data():
                 fuel = row["Combustible"]
                 if pd.isna(fuel):
                     fuel = None
+                model = row["Modelo"]
+                if pd.isna(model):
+                    model = ""
 
-                is_car = not (fuel is None and brand in bicycle_brands)
+                is_car = not (
+                    "BIKE" in model or (fuel is None and brand in bicycle_brands)
+                )
                 contains_cars = contains_cars or is_car
                 vehicle = {
                     "license_plate": license_plate,
@@ -312,6 +326,7 @@ def get_grouped_policy_data():
                 "contains_cars": contains_cars,
                 "vehicles": vehicles,
                 "soa_only": soa_only,
+                "cancelled": cancelled,
             }
             policies.append(policy)
 
