@@ -253,8 +253,11 @@ class BaseDownloader(ABC):
     def is_downloaded(self, policy):
         exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
         policy_expired = exp_date < datetime.now().date()
+        policy_cancelled = policy.get("cancelled", False)
         policy["expired"] = policy_expired
-        policy["downloaded"] = policy_expired or not policy["contains_cars"]
+        policy["downloaded"] = (
+            policy_cancelled or policy_expired or not policy["contains_cars"]
+        )
         if policy["downloaded"]:
             return
 
