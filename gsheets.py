@@ -11,6 +11,34 @@ GOOGLE_API_CREDENTIALS_PATH = os.getenv("GOOGLE_API_CREDENTIALS_PATH")
 logger = logging.getLogger(__name__)
 
 
+def get_sheet_data(spreadsheet_url, sheet_name):
+    """
+    Retrieves all values from a Google Sheet, optionally removing the 'Plantilla HTML' column.
+
+    Parameters:
+        spreadsheet_url (str): The URL of the Google Sheet.
+        sheet_name (str): The name of the worksheet.
+        remove_plantilla_html (bool): If True, removes the 'Plantilla HTML' column.
+
+    Returns:
+        list: Sheet data as a list of rows, or None if failed.
+    """
+    try:
+
+        sheet, success = get_google_sheet(spreadsheet_url, sheet_name)
+        if not success or sheet is None:
+            logger.info("Failed to obtain the sheet using get_google_sheet")
+            return None
+
+        data = sheet.get_all_values()
+
+        return data
+    except Exception as e:
+        error_message = f"Error getting google sheet: {str(e)}"
+        logger.info(error_message)
+        return None
+
+
 def get_google_sheet(spreadsheet_url, sheet_name):
     logger.info(f"Inicia get_google_sheet. Sheet: {sheet_name}")
 
@@ -54,13 +82,10 @@ def export_sheet_to_csv(spreadsheet_url, sheet_name, csv_file_path):
     """
     logger.info(f"Inicia export_sheet_to_csv. Sheet: {sheet_name}")
     try:
-        sheet, success = get_google_sheet(spreadsheet_url, sheet_name)
-        if not success or sheet is None:
-            logger.info("Failed to obtain the sheet using get_google_sheet")
-            return success
-
-        # Get all data from the sheet
-        data = sheet.get_all_values()
+        data = get_sheet_data(spreadsheet_url, sheet_name)
+        if data is None:
+            logger.info("Failed to obtain the data using get_sheet_data")
+            return False
 
         with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
@@ -87,12 +112,10 @@ def export_sheet_to_csv_string(spreadsheet_url, sheet_name):
     """
     logger.info(f"Inicia export_sheet_to_csv_string. Sheet: {sheet_name}")
     try:
-        sheet, success = get_google_sheet(spreadsheet_url, sheet_name)
-        if not success or sheet is None:
-            logger.info("Failed to obtain the sheet using get_google_sheet")
+        data = get_sheet_data(spreadsheet_url, sheet_name)
+        if data is None:
+            logger.info("Failed to obtain the data using get_sheet_data")
             return ""
-        # Get all data from the sheet
-        data = sheet.get_all_values()
 
         # Remove the column with header "Plantilla HTML"
         if data and "Plantilla HTML" in data[0]:
