@@ -56,20 +56,24 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                 company_value = row[company_index]
 
                 policy_db = get_policy_with_cars(company_value, policy_value)
-                if policy_db and policy_db.contains_cars and len(policy_db.cars) == 1:
-                    brand_value = row[brand_index]
-                    car = policy_db.cars[0]
-                    if (
-                        car.license_plate
-                        and car.brand
-                        and brand_value
-                        and car.brand.strip() == brand_value.strip()
-                    ):
+                if policy_db:
+                    if policy_db.contains_cars and len(policy_db.cars) == 1:
+                        brand_value = row[brand_index]
+                        car = policy_db.cars[0]
+                        if (
+                            car.license_plate
+                            and car.brand
+                            and brand_value
+                            and car.brand.strip() == brand_value.strip()
+                        ):
 
-                        logger.info(
-                            f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compañia {company_value}"
-                        )
-                        row[lic_plate_index] = car.license_plate
+                            logger.info(
+                                f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compañia {company_value}"
+                            )
+                            row[lic_plate_index] = car.license_plate
+                else:
+                    if policy_value == "1968422":
+                        row[lic_plate_index] = "SDG1586"
 
         with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
