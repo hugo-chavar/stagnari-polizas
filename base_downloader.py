@@ -254,6 +254,7 @@ class BaseDownloader(ABC):
         exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
         policy_expired = exp_date < datetime.now().date()
         policy_cancelled = policy.get("cancelled", False)
+        soa_only = policy.get("soa_only", False)
         policy["expired"] = policy_expired
         policy["downloaded"] = (
             policy_cancelled or policy_expired or not policy["contains_cars"]
@@ -265,12 +266,19 @@ class BaseDownloader(ABC):
             license_plate = vehicle.get("license_plate")
             folder = self.get_folder_path(policy, license_plate)
             soa_file_is_valid, _ = is_valid_pdf(folder, "soa.pdf")
-            mercosur_file_is_valid, _ = is_valid_pdf(folder, "mercosur.pdf")
-            vehicle["files_are_valid"] = soa_file_is_valid and mercosur_file_is_valid
-            if soa_file_is_valid and mercosur_file_is_valid:
+            if soa_only:
+                vehicle["files_are_valid"] = soa_file_is_valid
+            else:
+                mercosur_file_is_valid, _ = is_valid_pdf(folder, "mercosur.pdf")
+                vehicle["files_are_valid"] = (
+                    soa_file_is_valid and mercosur_file_is_valid
+                )
+            if vehicle["files_are_valid"]:
                 vehicle["folder"] = folder
                 vehicle["soa"] = os.path.join(folder, "soa.pdf")
-                vehicle["mercosur"] = os.path.join(folder, "mercosur.pdf")
+                vehicle["mercosur"] = (
+                    os.path.join(folder, "mercosur.pdf") if not soa_only else ""
+                )
 
     def mark_downloaded_policies(self, policies):
         """Check if all policies have been downloaded successfully."""
