@@ -39,16 +39,25 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
         data = get_sheet_data(spreadsheet_url, sheet_name)
         if data is None:
             logger.info("Failed to obtain the data from sheet")
+            return
 
+        policy_index = data[0].index("Poliza")
+        lic_plate_index = data[0].index("Matricula")
+        company_index = data[0].index("Compañia")
+        brand_index = data[0].index("Marca")
         for row in data[1:]:
-            lic_plate_value = row[data[0].index("Matricula")]
+
+            policy_value = row[policy_index]
+            if policy_value and policy_value == "pend":
+                row[policy_index] = "Pendiente"
+                continue
+            lic_plate_value = row[lic_plate_index]
             if not lic_plate_value:
-                policy_value = row[data[0].index("Poliza")]
-                company_value = row[data[0].index("Compañia")]
+                company_value = row[company_index]
 
                 policy_db = get_policy_with_cars(company_value, policy_value)
                 if policy_db and policy_db.contains_cars and len(policy_db.cars) == 1:
-                    brand_value = row[data[0].index("Marca")]
+                    brand_value = row[brand_index]
                     car = policy_db.cars[0]
                     if (
                         car.license_plate
@@ -60,7 +69,7 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                         logger.info(
                             f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compañia {company_value}"
                         )
-                        row[data[0].index("Matricula")] = car.license_plate
+                        row[lic_plate_index] = car.license_plate
 
         with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
@@ -287,6 +296,8 @@ def get_grouped_policy_data():
 
     # Drop rows where critical fields are missing
     df = df.dropna(subset=["Compañia", "Poliza"])
+    # Drop rows where "Poliza" is "Pendiente"
+    df = df[df["Poliza"] != "Pendiente"]
 
     # Group by company and policy
     result = {}
