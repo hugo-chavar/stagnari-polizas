@@ -1,10 +1,10 @@
 import logging
-import os
+import csv, os
 import re
 import pandas as pd
 from datetime import datetime, timedelta
-
-from gsheets import export_sheet_to_csv
+from chat_history_db import get_policy_with_cars
+from gsheets import get_sheet_data
 from filter_utils import (
     relax_cliente_filter_level1,
     relax_cliente_filter_level2,
@@ -30,6 +30,45 @@ logging.basicConfig(
     format="%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",  # Controls the non-millisecond part
 )
+
+
+def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
+
+    logger.info(f"Inicia sheet_data_to_csv. Sheet: {sheet_name}")
+    try:
+        data = get_sheet_data(spreadsheet_url, sheet_name)
+        if data is None:
+            logger.info("Failed to obtain the data from sheet")
+
+        for row in data[1:]:
+            lic_plate_value = row[data[0].index("Matricula")]
+            if not lic_plate_value:
+                policy_value = row[data[0].index("Poliza")]
+                company_value = row[data[0].index("Compañia")]
+
+                policy_db = get_policy_with_cars(company_value, policy_value)
+                if policy_db and policy_db.contains_cars and len(policy_db.cars) == 1:
+                    brand_value = row[data[0].index("Marca")]
+                    car = policy_db.cars[0]
+                    if (
+                        car.license_plate
+                        and car.brand
+                        and brand_value
+                        and car.brand.strip() == brand_value.strip()
+                    ):
+
+                        logger.info(
+                            f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compañia {company_value}"
+                        )
+                        row[data[0].index("Matricula")] = car.license_plate
+
+        with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerows(data)
+
+        logger.info(f"OK. CSV saved: {csv_file_path}")
+    except Exception as e:
+        logger.info(f"Error saving data sheet to CSV: {str(e)}")
 
 
 def update_interval_has_passed():
@@ -66,7 +105,7 @@ def load_csv_data():
     global df
     if update_interval_has_passed():
         logger.info("UPDATE_INTERVAL has passed - performing updates...")
-        export_sheet_to_csv(GOOGLE_SHEET_URL, GOOGLE_SHEET_NAME, CSV_FILE_PATH)
+        sheet_data_to_csv(GOOGLE_SHEET_URL, GOOGLE_SHEET_NAME, CSV_FILE_PATH)
         update_interval()
     else:
         logger.info("UPDATE_INTERVAL has not passed yet - skipping updates")
