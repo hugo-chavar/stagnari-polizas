@@ -66,6 +66,7 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
                 year=int(policy_data["year"]),
                 expiration_date=expiration_date,
                 downloaded=policy_data.get("downloaded", False),
+                cancelled=policy_data.get("cancelled", False),
                 contains_cars=policy_data.get("contains_cars", False),
                 soa_only=policy_data.get("soa_only", False),
                 obs=policy_data.get("obs", ""),

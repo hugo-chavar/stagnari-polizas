@@ -12,6 +12,7 @@ class Policy:
     downloaded: bool = False
     contains_cars: bool = False
     soa_only: bool = False
+    cancelled: bool = False
     obs: Optional[str] = None
     timestamp: Optional[datetime] = None
     cars: List["Car"] = field(default_factory=list)

@@ -85,6 +85,7 @@ def init_db():
             downloaded BOOLEAN,
             contains_cars BOOLEAN,
             soa_only BOOLEAN,
+            cancelled BOOLEAN,
             obs TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (company, policy_number)
@@ -311,8 +312,8 @@ def insert_policy(policy: Policy) -> None:
             """
             INSERT INTO policy (
                 company, policy_number, year, expiration_date,
-                downloaded, contains_cars, soa_only, obs
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                downloaded, contains_cars, soa_only, cancelled, obs
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 policy.company,
@@ -322,6 +323,7 @@ def insert_policy(policy: Policy) -> None:
                 policy.downloaded,
                 policy.contains_cars,
                 policy.soa_only,
+                policy.cancelled,
                 policy.obs,
             ),
         )
@@ -384,6 +386,7 @@ def get_policy(company: str, policy_number: str) -> Optional[Policy]:
                 downloaded=bool(row["downloaded"]),
                 contains_cars=bool(row["contains_cars"]),
                 soa_only=bool(row["soa_only"]),
+                cancelled=bool(row["cancelled"]),
                 obs=row["obs"],
                 timestamp=(
                     datetime.fromisoformat(row["timestamp"])
