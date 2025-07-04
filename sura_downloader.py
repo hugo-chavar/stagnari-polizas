@@ -185,9 +185,9 @@ class SuraDownloader(BaseDownloader):
                     requested_vehicle = policy["vehicles"][0]
                     lic_plate = requested_vehicle["license_plate"].strip()
                     if vehicle_plate.strip() != lic_plate:
-                        if len(lic_plate) == 1:
+                        if len(lic_plate) <= 2:
                             requested_vehicle["license_plate"] = vehicle_plate.strip()
-                        elif len(vehicle_plate.strip()) == 1:
+                        elif len(vehicle_plate.strip()) <= 2:
                             vehicle["Matrícula"] = lic_plate
                 else:
                     requested_vehicle = next(
