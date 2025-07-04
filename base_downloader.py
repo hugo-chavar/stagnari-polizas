@@ -232,8 +232,13 @@ class BaseDownloader(ABC):
                     v["status"] = "Skipped"
                     v["reason"] = "No en la web"
 
-            policy["downloaded"] = all(
-                vehicle.get("status", "") == "Ok" for vehicle in policy["vehicles"]
+            policy["cancelled"] = all(
+                v.get("status", "") == "Skipped"
+                and v.get("reason", "") == "No en la web"
+                for v in policy["vehicles"]
+            )
+            policy["downloaded"] = policy["cancelled"] or all(
+                v.get("status", "") == "Ok" for v in policy["vehicles"]
             )
         except Exception as e:
             error_message = f"Error downloading policy {policy['number']} from {self.name()}: {str(e)}"
