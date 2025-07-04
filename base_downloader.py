@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import List, Dict, Any
 from pathlib import Path
@@ -148,11 +148,18 @@ class BaseDownloader(ABC):
         try:
             self.wait_login_confirmation()
             self.logged_in = True
+            self.login_time = datetime.now().replace(second=0, microsecond=0)
             logger.info("Login successful")
         except Exception as e:
             error_message = f"Error logging into {self.name()}: {str(e)}"
             logger.error(error_message)
             raise CompanyPolicyException(company=self.name(), reason=error_message)
+
+    def login_session_expired(self):
+        current_time = datetime.now().replace(second=0, microsecond=0)
+
+        time_diff = current_time - self.login_time
+        return time_diff >= timedelta(minutes=12)
 
     def logout(self):
         """Template method for the logout process."""
@@ -208,6 +215,10 @@ class BaseDownloader(ABC):
 
     def download_policy(self, policy: Dict[str, str]):
         """Template method for the complete policy download process."""
+        if self.login_session_expired():
+            logger.info(f"Login time has expired")
+            return
+
         try:
             self._search_for_policy(policy)
             count = self.get_endorsements_count()
