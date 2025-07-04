@@ -370,7 +370,7 @@ def get_policy(company: str, policy_number: str) -> Optional[Policy]:
             """
             SELECT 
                 company, policy_number, year, expiration_date,
-                downloaded, contains_cars, soa_only, obs, timestamp
+                downloaded, contains_cars, soa_only, cancelled, obs, timestamp
             FROM policy
             WHERE company = ? AND policy_number = ?
             """,
