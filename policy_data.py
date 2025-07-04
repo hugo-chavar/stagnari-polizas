@@ -74,6 +74,14 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                 else:
                     if policy_value == "1968422":
                         row[lic_plate_index] = "SDG1586"
+                    elif policy_value == "2107841":
+                        row[lic_plate_index] = "SDH5834"
+                    elif policy_value == "1957105":
+                        row[lic_plate_index] = "SDF6464"
+                    elif policy_value == "1968824":
+                        row[lic_plate_index] = "SDH3532"
+                    elif policy_value == "1972525":
+                        row[lic_plate_index] = "BED4626"
 
         with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
@@ -309,10 +317,12 @@ def get_grouped_policy_data():
     cancelled_policies = [
         "1938091",
         "1940520",
+        "1961256",
         "2123126",
         "2138316",
         "2160105",
         "2172904",
+        "9801834",
     ]
 
     # Iterate through each unique company
