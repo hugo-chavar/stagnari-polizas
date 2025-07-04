@@ -175,6 +175,9 @@ class BaseDownloader(ABC):
     def download_policies(self, policies: List[Dict[str, str]]):
         """Download multiple policies using the provided policy data."""
         for policy in policies:
+            if self.login_session_expired():
+                logger.info(f"Login time has expired")
+                return
             try:
                 if not policy.get("number"):
                     logger.error(f"Policy number is required for policy: {policy}")
@@ -215,9 +218,6 @@ class BaseDownloader(ABC):
 
     def download_policy(self, policy: Dict[str, str]):
         """Template method for the complete policy download process."""
-        if self.login_session_expired():
-            logger.info(f"Login time has expired")
-            return
 
         try:
             self._search_for_policy(policy)
