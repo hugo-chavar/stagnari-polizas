@@ -107,7 +107,7 @@ class SuraDownloader(BaseDownloader):
 
             # Click the search button
             self.driver.click(Locator(LocatorType.ID, "btnConsultar"))
-            logger.info("Search button clicked, waiting for results")
+            logger.debug("Search button clicked, waiting for results")
 
             self.wait_overlay_invisibility()
 
@@ -319,7 +319,7 @@ class SuraDownloader(BaseDownloader):
 
             # Click the row
             row_element.click()
-            logger.info(f"Endorsement {endorsement_line} clicked")
+            logger.debug(f"Endorsement {endorsement_line} clicked")
             self.wait_overlay_invisibility()
 
             logger.info(

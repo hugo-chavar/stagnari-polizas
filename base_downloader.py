@@ -22,7 +22,7 @@ class CompanyPolicyException(Exception):
 
 class FilenameRenameStrategy:
     def __init__(self, folder, filename) -> None:
-        logger.info("Using direct filename rename strategy")
+        logger.debug("Using direct filename rename strategy")
         self.folder = folder
         self.filename = filename
 
@@ -338,7 +338,7 @@ class BaseDownloader(ABC):
             raise FileNotFoundError(err_msg)
 
     def _wait_download_and_rename_file(self, rename_strategy, timeout=300):
-        logger.info("Inicia _wait_download_and_rename_file")
+        logger.debug("Inicia _wait_download_and_rename_file")
         end_time = time.time() + timeout
         tmp_path = self.driver.folder
         download_started = False
@@ -353,7 +353,7 @@ class BaseDownloader(ABC):
                 raise FileNotFoundError(error_message)
 
             if file_list:
-                logger.info(
+                logger.debug(
                     f"Verificando archivo descargado para renombrar a {str(rename_strategy)}"
                 )
                 try:
@@ -391,8 +391,8 @@ class BaseDownloader(ABC):
 
                     # esperamos a que Chrome termine el proceso de descarga
                     time.sleep(2)
-                    logger.info(f"Old file path: {downloaded_file_path}")
-                    logger.info(f"New file path: {new_file_path}")
+                    logger.debug(f"Old file path: {downloaded_file_path}")
+                    logger.debug(f"New file path: {new_file_path}")
                     os.rename(downloaded_file_path, new_file_path)
                     logger.info(f"Se renombro archivo {newest_file} a {new_file_name}")
                     return new_file_path, True
