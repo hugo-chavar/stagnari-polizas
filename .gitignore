@@ -2,6 +2,8 @@
 test*/
 test*
 data/
+json/
+logs/
 venv*/
 chrome*/
 __pycache__/
