@@ -38,7 +38,7 @@ def need_to_be_processed(company, policy):
         return True
 
     if not policy_db.downloaded:
-        logger.info(f"Policy {policy["number"]} already downloaded")
+        logger.info(f"Policy {policy["number"]} in db but not downloaded")
         return True
 
     logger.info(f"Policy {policy["number"]} already PROCESSED")
@@ -84,6 +84,7 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
                     year=vehicle_data["year"],
                     soa_file_path=vehicle_data.get("soa"),
                     mercosur_file_path=vehicle_data.get("mercosur"),
+                    obs=vehicle_data.get("obs"),
                 )
                 db.insert_car(car)
 
@@ -92,7 +93,9 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
                 f"Skipping policy {policy_data.get('number')} due to error: {e}"
             )
         except KeyError as e:
-            logger.error(f"Skipping policy due to missing field: {e}")
+            logger.error(
+                f"Skipping policy {policy_data.get('number')} due to missing field: {e}"
+            )
         except sqlite3.Error as e:
             logger.error(f"Database error with policy {policy_data.get('number')}: {e}")
 

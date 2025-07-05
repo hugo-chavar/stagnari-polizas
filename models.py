@@ -29,3 +29,4 @@ class Car:
     soa_file_path: Optional[str] = None
     mercosur_file_path: Optional[str] = None
     timestamp: Optional[datetime] = None
+    obs: Optional[str] = None

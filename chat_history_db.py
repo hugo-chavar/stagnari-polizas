@@ -69,6 +69,7 @@ def init_db():
             year INTEGER,
             soa_file_path TEXT,
             mercosur_file_path TEXT,
+            obs TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (company, policy_number, license_plate)
         )
@@ -211,13 +212,14 @@ def add_car(
     year: int,
     soa_file_path: str = None,
     mercosur_file_path: str = None,
+    obs: str = None,
 ) -> bool:
     """Add a new car to the database"""
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO car (company, policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO car (company, policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path, obs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     company,
                     policy_number,
@@ -227,6 +229,7 @@ def add_car(
                     year,
                     soa_file_path,
                     mercosur_file_path,
+                    obs,
                 ),
             )
             conn.commit()
@@ -244,6 +247,7 @@ def update_car(
     year: int = None,
     soa_file_path: str = None,
     mercosur_file_path: str = None,
+    obs: str = None,
 ) -> bool:
     """Update an existing car's information"""
     with sqlite3.connect(DATABASE_NAME) as conn:
@@ -266,7 +270,9 @@ def update_car(
         if mercosur_file_path is not None:
             fields.append("mercosur_file_path = ?")
             values.append(mercosur_file_path)
-
+        if obs is not None:
+            fields.append("obs = ?")
+            values.append(obs)
         if not fields:
             return False  # No fields to update
 
@@ -292,7 +298,7 @@ def get_car(
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT brand, model, year, soa_file_path, mercosur_file_path FROM car WHERE policy_number = ? AND license_plate = ?",
+            "SELECT brand, model, year, soa_file_path, mercosur_file_path, obs FROM car WHERE policy_number = ? AND license_plate = ?",
             (policy_number, license_plate),
         )
         result = cursor.fetchone()
@@ -406,8 +412,8 @@ def insert_car(car: Car) -> None:
             INSERT INTO car (
                 company, policy_number, license_plate,
                 brand, model, year,
-                soa_file_path, mercosur_file_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                soa_file_path, mercosur_file_path, obs
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, obs)
             """,
             (
                 car.company,
@@ -418,6 +424,7 @@ def insert_car(car: Car) -> None:
                 car.year,
                 car.soa_file_path,
                 car.mercosur_file_path,
+                car.obs,
             ),
         )
         conn.commit()
@@ -433,7 +440,7 @@ def get_cars_by_policy(company: str, policy_number: str) -> List[Car]:
             SELECT 
                 company, policy_number, license_plate,
                 brand, model, year,
-                soa_file_path, mercosur_file_path, timestamp
+                soa_file_path, mercosur_file_path, obs, timestamp
             FROM car
             WHERE company = ? AND policy_number = ?
             """,
@@ -449,6 +456,7 @@ def get_cars_by_policy(company: str, policy_number: str) -> List[Car]:
                 year=row["year"],
                 soa_file_path=row["soa_file_path"],
                 mercosur_file_path=row["mercosur_file_path"],
+                obs=row["obs"],
                 timestamp=(
                     datetime.fromisoformat(row["timestamp"])
                     if row["timestamp"]
