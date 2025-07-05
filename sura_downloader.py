@@ -145,6 +145,76 @@ class SuraDownloader(BaseDownloader):
         except Exception as e:
             logger.error(f"Error extracting table {table_id} data: {str(e)}")
 
+    def reconcile_vehicles(
+        self, page_data: list[dict], policy_data: list[dict]
+    ) -> list[dict]:
+
+        reconciled_vehicles = []
+
+        if len(page_data) == 1 and len(policy_data) == 1:
+            page_vehicle = page_data[0]
+            policy_vehicle = policy_data[0]
+
+            # If page has "NOFIGURA" or empty plate, use policy plate
+            page_has_empty_plate = page_vehicle.get("Matrícula", "").upper() in (
+                "NOFIGURA",
+                "0KM",
+                "",
+            )
+            if page_has_empty_plate:
+                page_vehicle["Matrícula"] = policy_vehicle.get("license_plate", "")
+            # If policy has empty plate, use page plate (if not "NOFIGURA")
+            elif not policy_vehicle.get("license_plate") and not page_has_empty_plate:
+                policy_vehicle["license_plate"] = page_vehicle["Matrícula"]
+
+        for policy_vehicle in policy_data:
+            license_plate = policy_vehicle.get("license_plate", "").strip()
+
+            page_vehicle = next(
+                (
+                    v
+                    for v in page_data
+                    if v.get("Matrícula", "").strip() == license_plate
+                ),
+                None,
+            )
+
+            reconciled_vehicle = policy_vehicle.copy()
+            reconciled_vehicle["license_plate"] = license_plate
+            if not page_vehicle:
+                reconciled_vehicle.update(
+                    {"status": "Skipped", "reason": "No en la web"}
+                )
+                reconciled_vehicles.append(reconciled_vehicle)
+                continue
+
+            if page_vehicle.get("Estado") == "Excluido":
+                reconciled_vehicle.update(
+                    {"status": "Skipped", "reason": "Excluido de la flota"}
+                )
+                reconciled_vehicles.append(reconciled_vehicle)
+                continue
+
+            if policy_vehicle.get("files_are_valid"):
+                logger.warning(
+                    f"Vehicle {license_plate} was previously downloaded, skipping download"
+                )
+                reconciled_vehicle.update(
+                    {"status": "Skipped", "reason": "Descarga ya realizada"}
+                )
+                continue
+
+            reconciled_vehicle.update(
+                {
+                    "status": "Pending",
+                    "page_id": page_vehicle.get("Nro."),
+                }
+            )
+
+            reconciled_vehicles.append(reconciled_vehicle)
+
+        return reconciled_vehicles
+
     def download_policy_files(self, policy: Dict[str, Any], endorsement_line: int):
         """Handle the SURA policy file download."""
         try:
@@ -157,62 +227,24 @@ class SuraDownloader(BaseDownloader):
             self.go_to_endorsement_items()
 
             vehicles_count = self.get_vehicles_count()
-            vehicles_data = self.get_vehicles_data()
-            logger.info(f"Page vehicles data: {vehicles_data}")
-            logger.info(f"Policy vehicles data: {policy["vehicles"]}")
-            logger.info(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
-            # Redirect to each vehicle detail page
-            single_vehicle = (
-                vehicles_count == len(policy["vehicles"]) and vehicles_count == 1
-            )
+            page_vehicles = self.get_vehicles_data()
+            policy_vehicles = policy["vehicles"]
+            logger.info(f"Page vehicles: {page_vehicles}")
+            logger.info(f"Policy vehicles: {policy_vehicles}")
+            logger.debug(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
 
-            empty_license_plate = 0
-            for vehicle in vehicles_data:
-                vehicle_id = vehicle["Nro."]
-                if vehicle["Matrícula"] == "NOFIGURA":
-                    vehicle["Matrícula"] = str(empty_license_plate)
-                    empty_license_plate += 1
-                vehicle_plate = vehicle["Matrícula"]
+            reconciled_vehicles = self.reconcile_vehicles(
+                page_vehicles, policy_vehicles
+            )
+            logger.info(f"Reconciled vehicles: {reconciled_vehicles}")
+            for vehicle in reconciled_vehicles:
+                if vehicle["status"] != "Pending":
+                    continue
+                vehicle_id = vehicle["page_id"]
+
+                vehicle_plate = vehicle["license_plate"]
                 logger.info(f"Processing vehicle {vehicle_plate} with ID {vehicle_id}")
-                if vehicle["Estado"] == "Excluido":
-                    logger.warning(
-                        f"Vehicle {vehicle_plate} is not active, skipping download"
-                    )
-                    vehicle["status"] = "Skipped"
-                    vehicle["reason"] = "Excluido de la flota"
-                    continue
-                if single_vehicle:
-                    requested_vehicle = policy["vehicles"][0]
-                    lic_plate = requested_vehicle["license_plate"].strip()
-                    if vehicle_plate.strip() != lic_plate:
-                        if len(lic_plate) <= 2:
-                            requested_vehicle["license_plate"] = vehicle_plate.strip()
-                        elif len(vehicle_plate.strip()) <= 2:
-                            vehicle["Matrícula"] = lic_plate
-                else:
-                    requested_vehicle = next(
-                        (
-                            v
-                            for v in policy["vehicles"]
-                            if v["license_plate"] == vehicle_plate
-                        ),
-                        None,
-                    )
-                if not requested_vehicle:
-                    logger.warning(
-                        f"Vehicle {vehicle_plate} is not in the spreadsheet, skipping download"
-                    )
-                    vehicle["status"] = "Skipped"
-                    vehicle["reason"] = "No en la planilla"
-                    policy["vehicles"].append(vehicle)
-                    continue
-                if requested_vehicle.get("files_are_valid"):
-                    logger.warning(
-                        f"Vehicle {vehicle_plate} was previously downloaded, skipping download"
-                    )
-                    vehicle["status"] = "Skipped"
-                    vehicle["reason"] = "Descarga ya realizada"
-                    continue
+
                 # Execute the redirect script for each vehicle
                 try:
                     script = f"redirectPage('DetalleVehiculo.aspx', {e_id}, {vehicle_id}, false)"
@@ -255,13 +287,12 @@ class SuraDownloader(BaseDownloader):
                         )
                     except:
                         pass
-                    requested_vehicle.update(vehicle)
 
                 except Exception as e:
                     logger.error(f"Error processing vehicle {vehicle_plate}: {str(e)}")
                     vehicle["status"] = "Error"
                     vehicle["reason"] = e.reason if hasattr(e, "reason") else str(e)
-
+            policy["vehicles"] = reconciled_vehicles
         except Exception as e:
             logger.error(f"Error downloading policy files: {str(e)}")
             raise CompanyPolicyException(
