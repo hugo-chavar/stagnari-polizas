@@ -193,11 +193,11 @@ class BaseDownloader(ABC):
                     policy["obs"] = "Vencida"
                     continue
                 if policy["expired"]:
-                    logger.error(f"The expiration date has passed for policy: {policy}")
+                    logger.debug(f"The expiration date has passed for policy: {policy}")
                     policy["obs"] = "Vencida"
                     continue
                 if not policy["contains_cars"]:
-                    logger.error(f"Policy: {policy} is not a car policy")
+                    logger.debug(f"Policy: {policy} is not a car policy")
                     policy["obs"] = "No es automovil"
                     continue
 
@@ -205,8 +205,16 @@ class BaseDownloader(ABC):
                     logger.info(
                         f"Starts download process for policy: {policy['number']}"
                     )
-                    self.download_policy(policy)
-                    logger.info(f"Policy {policy['number']} downloaded successfully")
+                    if self.download_policy(policy):
+                        logger.info(
+                            f"Policy {policy['number']} downloaded SUCCESSFULLY"
+                        )
+                    else:
+                        if policy["cancelled"]:
+                            logger.warning(f"Policy {policy['number']} was CANCELLED")
+                        else:
+                            logger.warning(f"Policy {policy['number']} NOT downloaded")
+                            logger.warning(str(policy))
                 else:
                     logger.info(f"Policy {policy['number']} already downloaded")
             except CompanyPolicyException as e:
@@ -216,7 +224,7 @@ class BaseDownloader(ABC):
                     f"Unexpected error downloading policy {policy['number']}: {str(e)}"
                 )
 
-    def download_policy(self, policy: Dict[str, str]):
+    def download_policy(self, policy: Dict[str, str]) -> bool:
         """Template method for the complete policy download process."""
 
         try:
@@ -234,6 +242,13 @@ class BaseDownloader(ABC):
                 )
                 self.download_policy_files(policy, i)
 
+                download_success = all(
+                    v.get("status", "") == "Ok" for v in policy["vehicles"]
+                )
+
+                if download_success:
+                    break
+
                 if i < count - 1:
                     self._search_for_policy(policy)
 
@@ -248,13 +263,27 @@ class BaseDownloader(ABC):
                 and v.get("reason", "") == "No en la web"
                 for v in policy["vehicles"]
             )
-            policy["downloaded"] = policy["cancelled"] or all(
+            download_success = all(
                 v.get("status", "") == "Ok" for v in policy["vehicles"]
             )
+            policy["downloaded"] = download_success or policy["cancelled"]
+            if not policy.get("obs"):
+                policy["obs"] = next(
+                    (
+                        f"{v.get('license_plate', '')} - {v.get('obs', '')}".strip(
+                            " - "
+                        )
+                        for v in policy["vehicles"]
+                        if v.get("obs", "") != ""
+                    ),
+                    "",
+                )
+            return download_success
         except Exception as e:
             error_message = f"Error downloading policy {policy['number']} from {self.name()}: {str(e)}"
             logger.error(error_message)
-            raise CompanyPolicyException(company=self.name(), reason=error_message)
+            policy["obs"] = error_message
+            return False
 
     def _search_for_policy(self, policy: Dict[str, str]) -> None:
         """Helper method to search for a policy."""
