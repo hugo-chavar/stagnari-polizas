@@ -155,7 +155,6 @@ class SuraDownloader(BaseDownloader):
             page_vehicle = page_data[0]
             policy_vehicle = policy_data[0]
 
-            # If page has "NOFIGURA" or empty plate, use policy plate
             page_has_empty_plate = page_vehicle.get("Matrícula", "").upper() in (
                 "NOFIGURA",
                 "0KM",
@@ -163,7 +162,6 @@ class SuraDownloader(BaseDownloader):
             )
             if page_has_empty_plate:
                 page_vehicle["Matrícula"] = policy_vehicle.get("license_plate", "")
-            # If policy has empty plate, use page plate (if not "NOFIGURA")
             elif not policy_vehicle.get("license_plate") and not page_has_empty_plate:
                 policy_vehicle["license_plate"] = page_vehicle["Matrícula"]
 
