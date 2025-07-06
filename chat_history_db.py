@@ -219,7 +219,7 @@ def add_car(
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO car (company, policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path, obs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO car (company, policy_number, license_plate, brand, model, year, soa_file_path, mercosur_file_path, obs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     company,
                     policy_number,
@@ -413,7 +413,7 @@ def insert_car(car: Car) -> None:
                 company, policy_number, license_plate,
                 brand, model, year,
                 soa_file_path, mercosur_file_path, obs
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, obs)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 car.company,
