@@ -240,6 +240,7 @@ class BaseDownloader(ABC):
                 logger.info(
                     f"Downloading files, policy: {policy['number']} endorsement: {i}"
                 )
+
                 self.download_policy_files(policy, i)
 
                 download_success = all(
@@ -247,6 +248,15 @@ class BaseDownloader(ABC):
                 )
 
                 if download_success:
+                    break
+
+                cars_excluded = all(
+                    v.get("status", "") == "Skipped"
+                    and v.get("reason", "") == "Excluido de la flota"
+                    for v in policy["vehicles"]
+                )
+
+                if cars_excluded:
                     break
 
                 if i < count - 1:
@@ -324,17 +334,15 @@ class BaseDownloader(ABC):
                 vehicle["mercosur"] = (
                     os.path.join(folder, "mercosur.pdf") if not soa_only else ""
                 )
+        policy["downloaded"] = all(
+            vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
+        )
 
     def mark_downloaded_policies(self, policies):
         """Check if all policies have been downloaded successfully."""
         for policy in policies:
             policy["obs"] = ""
             self.is_downloaded(policy)
-            if not policy["downloaded"]:
-                policy["downloaded"] = all(
-                    vehicle.get("files_are_valid", False)
-                    for vehicle in policy["vehicles"]
-                )
 
     def check_if_all_downloaded(self, policies) -> bool:
         """Check if all policies in the list have been downloaded successfully."""

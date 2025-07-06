@@ -236,6 +236,10 @@ class SuraDownloader(BaseDownloader):
                 page_vehicles, policy_vehicles
             )
             logger.info(f"Reconciled vehicles: {reconciled_vehicles}")
+            self.is_downloaded(policy)
+            if policy["downloaded"]:
+                logger.info("ALREADY DOWNLOADED")
+                return
             for vehicle in reconciled_vehicles:
                 if vehicle["status"] != "Pending":
                     continue
