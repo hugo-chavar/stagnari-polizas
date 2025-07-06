@@ -148,7 +148,6 @@ class SuraDownloader(BaseDownloader):
     def reconcile_vehicles(
         self, page_data: list[dict], policy_data: list[dict]
     ) -> list[dict]:
-
         reconciled_vehicles = []
 
         if len(page_data) == 1 and len(policy_data) == 1:
@@ -179,6 +178,7 @@ class SuraDownloader(BaseDownloader):
 
             reconciled_vehicle = policy_vehicle.copy()
             reconciled_vehicle["license_plate"] = license_plate
+
             if not page_vehicle:
                 reconciled_vehicle.update(
                     {"status": "Skipped", "reason": "No en la web"}
@@ -200,6 +200,7 @@ class SuraDownloader(BaseDownloader):
                 reconciled_vehicle.update(
                     {"status": "Skipped", "reason": "Descarga ya realizada"}
                 )
+                reconciled_vehicles.append(reconciled_vehicle)
                 continue
 
             reconciled_vehicle.update(
