@@ -252,7 +252,7 @@ class BaseDownloader(ABC):
 
                 cars_excluded = all(
                     v.get("status", "") == "Skipped"
-                    and v.get("reason", "") == "Excluido de la flota"
+                    and v.get("reason", "") in ["Excluido de la flota", "No en la web"]
                     for v in policy["vehicles"]
                 )
 
