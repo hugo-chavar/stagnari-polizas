@@ -277,17 +277,7 @@ class BaseDownloader(ABC):
                 v.get("status", "") == "Ok" for v in policy["vehicles"]
             )
             policy["downloaded"] = download_success or policy["cancelled"]
-            if not policy.get("obs"):
-                policy["obs"] = next(
-                    (
-                        f"{v.get('license_plate', '')} - {v.get('obs', '')}".strip(
-                            " - "
-                        )
-                        for v in policy["vehicles"]
-                        if v.get("obs", "") != ""
-                    ),
-                    "",
-                )
+
             return download_success
         except Exception as e:
             error_message = f"Error downloading policy {policy['number']} from {self.name()}: {str(e)}"
@@ -399,7 +389,7 @@ class BaseDownloader(ABC):
                         file_list,
                         key=lambda x: os.path.getctime(os.path.join(tmp_path, x)),
                     )
-                    logger.info(f"Se encontro archivo temporal: {newest_file}")
+                    logger.debug(f"Se encontro archivo temporal: {newest_file}")
                 except:
                     newest_file = None
 

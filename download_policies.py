@@ -37,7 +37,7 @@ def need_to_be_processed(company, policy):
         logger.info(f"Policy {policy["number"]} has new expiration date")
         return True
 
-    if not policy_db.downloaded:
+    if not policy_db.downloaded and not policy_db.cancelled:
         logger.info(f"Policy {policy["number"]} in db but not downloaded")
         return True
 
@@ -59,6 +59,18 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
             expiration_date = datetime.strptime(
                 policy_data["expiration_date"], "%d/%m/%Y"
             ).date()
+
+            if not policy_data.get("obs"):
+                policy_data["obs"] = next(
+                    (
+                        f"{v.get('license_plate', '')} - {v.get('reason', '')}".strip(
+                            " - "
+                        )
+                        for v in policy_data["vehicles"]
+                        if v.get("reason", "") != ""
+                    ),
+                    "",
+                )
 
             policy = Policy(
                 company=company,
@@ -84,7 +96,7 @@ def insert_processed_policies(company: str, policies: List[Dict]) -> None:
                     year=vehicle_data["year"],
                     soa_file_path=vehicle_data.get("soa"),
                     mercosur_file_path=vehicle_data.get("mercosur"),
-                    obs=vehicle_data.get("obs"),
+                    obs=vehicle_data.get("reason"),
                 )
                 db.insert_car(car)
 
