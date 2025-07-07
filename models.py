@@ -17,6 +17,22 @@ class Policy:
     timestamp: Optional[datetime] = None
     cars: List["Car"] = field(default_factory=list)
 
+    def get_car(self, license_plate: str) -> Optional["Car"]:
+        """
+        Returns the Car object from self.cars with the given license_plate.
+        Returns None if not found.
+        """
+        for car in self.cars:
+            if car.license_plate == license_plate:
+                return car
+        return None
+
+    def is_expired(self) -> bool:
+        """
+        Returns True if the policy's expiration_date is before today.
+        """
+        return self.expiration_date < datetime.now().date()
+
 
 @dataclass
 class Car:
