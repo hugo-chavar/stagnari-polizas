@@ -63,7 +63,7 @@ def send_message(user_number, message):
     print(f"Sent message: {message} to {user_number}", flush=True)
 
 
-def send_file(user_number, file_path):
+def send_file(user_number, file_path, body="Requested document"):
     filename = os.path.basename(file_path)
     public_url = f"{SHARED_FILES_URL}/{filename}"
 
@@ -71,7 +71,7 @@ def send_file(user_number, file_path):
         from_=TWILIO_PHONE_NUMBER,
         to=user_number,
         media_url=[public_url],
-        body="Here's the document you requested",
+        body=body,
     )
     print(f"Sent file: {public_url} to {user_number}", flush=True)
 
