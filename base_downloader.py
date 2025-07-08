@@ -345,13 +345,17 @@ class BaseDownloader(ABC):
             logger.info("All policies were downloaded successfully.")
         return all_downloaded
 
+    def get_relative_path(self, policy, vehicle_plate):
+        return (
+            f"{self.name()}/{policy["number"]}/{policy["year"]}/"
+            f"{f'{vehicle_plate}/' if vehicle_plate else ''}"
+        )
+
     def get_folder_path(self, policy, vehicle_plate):
+        rel_path = self.get_relative_path(policy, vehicle_plate)
         return os.path.join(
             self.download_folder,
-            self.name(),
-            policy["number"],
-            policy["year"],
-            vehicle_plate,
+            rel_path,
         )
 
     def clean_tmp_folder(self):
