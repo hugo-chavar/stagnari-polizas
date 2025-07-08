@@ -9,18 +9,6 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-DOWNLOAD_FOLDER = os.getenv(f"DOWNLOAD_FOLDER")
-
-
-def get_folder_path(policy: Policy, vehicle_plate):
-    return os.path.join(
-        DOWNLOAD_FOLDER,
-        policy.company,
-        policy.policy_number,
-        policy.year,
-        vehicle_plate,
-    )
-
 
 def get_file_paths(policy: Policy, car: Car) -> Tuple[bool, str, str, str]:
     if not car.soa_file_path:
