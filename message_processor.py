@@ -56,7 +56,7 @@ def process_incoming_message(filter, incoming_message, to_number):
     # Check if model understood the message
     if "?" in filter:
         # If the model didn't understand the message, return the follow up message
-        return filter["?"]
+        return filter["?"], None
     incoming_message, filtered_data, negative_response = get_filtered_data(
         filter, incoming_message
     )
@@ -65,7 +65,7 @@ def process_incoming_message(filter, incoming_message, to_number):
         incoming_message, filtered_data, to_number, negative_response
     )
     logger.info(f"Final response:\n{response}")
-    return response
+    return response, None
 
 
 def get_filtered_data(filter, incoming_message):

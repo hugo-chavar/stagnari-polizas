@@ -41,16 +41,21 @@ def send_delayed_response(user_number: str, user_message: str):
     """Process user input and send delayed bot response."""
     try:
 
-        response_text = get_response_to_message(user_message, user_number)
-        if not response_text:
-            return
-        all_messages = split_long_message(response_text)
+        response_text, files_to_send = get_response_to_message(
+            user_message, user_number
+        )
+        if response_text:
+            all_messages = split_long_message(response_text)
 
-        for message in all_messages:
-            # Send the message with a delay
-            send_message(user_number, message)
-            # Add a delay of 5 seconds between messages
-            time.sleep(5)
+            for message in all_messages:
+                # Send the message with a delay
+                send_message(user_number, message)
+                # Add a delay of 5 seconds between messages
+                time.sleep(5)
+        if files_to_send:
+            for file in files_to_send:
+                send_file(user_number, file["path"], file["name"])
+                time.sleep(5)
     except ValueError as ve:
         print(f"ValueError: {ve}", flush=True)
         send_message(user_number, str(ve))
