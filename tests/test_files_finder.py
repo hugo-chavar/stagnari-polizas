@@ -261,7 +261,7 @@ def make_policy_mock(policy_data, cars_data):
             "args": ("SURA", "notfound", "", False),
             "expected": (False, "Poliza notfound inexistente en SURA", None, None),
         },
-        # 10. Policy with car, but car has no SOA file path
+        # 10. Policy with car, car has no SOA file path but is cancelled
         {
             "policy": {
                 "company": "SURA",
@@ -285,6 +285,62 @@ def make_policy_mock(policy_data, cars_data):
             "expected": (
                 False,
                 "Poliza 2089303 fue cancelada ó no figura en el sistema de SURA.",
+                None,
+                None,
+            ),
+        },
+        # 11. Policy with car, not cancelled, but car has no SOA file path
+        {
+            "policy": {
+                "company": "SURA",
+                "policy_number": "2089304",
+                "year": 2025,
+                "expiration_date": "2025-08-07",
+                "downloaded": 1,
+                "contains_cars": 1,
+                "soa_only": 1,
+                "cancelled": 0,
+                "obs": "",
+            },
+            "cars": [
+                {
+                    "license_plate": "TST1745",
+                    "soa_file_path": None,
+                    "mercosur_file_path": None,
+                }
+            ],
+            "args": ("SURA", "2089304", "TST1745", False),
+            "expected": (
+                False,
+                "Problema inesperado al obtener el SOA de poliza 2089304 de SURA matrícula TST1745. Consulte por asistencia técnica.",
+                None,
+                None,
+            ),
+        },
+        # 12. Policy with car, not cancelled, but car has no SOA file path. License plate is None
+        {
+            "policy": {
+                "company": "SURA",
+                "policy_number": "2089304",
+                "year": 2025,
+                "expiration_date": "2025-08-07",
+                "downloaded": 1,
+                "contains_cars": 1,
+                "soa_only": 1,
+                "cancelled": 0,
+                "obs": "",
+            },
+            "cars": [
+                {
+                    "license_plate": None,
+                    "soa_file_path": None,
+                    "mercosur_file_path": None,
+                }
+            ],
+            "args": ("SURA", "2089304", None, False),
+            "expected": (
+                False,
+                "Problema inesperado al obtener el SOA de poliza 2089304 de SURA. Consulte por asistencia técnica.",
                 None,
                 None,
             ),

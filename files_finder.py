@@ -24,9 +24,11 @@ def get_folder_path(policy: Policy, vehicle_plate):
 
 def get_file_paths(policy: Policy, car: Car) -> Tuple[bool, str, str, str]:
     if not car.soa_file_path:
-        message = f"Problema inesperado al obtener el SOA de poliza {policy.policy_number} de {policy.company}"
-        +(f" matrícula {car.license_plate}. " if car.license_plate else ". ")
-        +"Consulte por asistencia técnica."
+        message = (
+            f"Problema inesperado al obtener el SOA de poliza {policy.policy_number} de {policy.company}"
+            f"{f' matrícula {car.license_plate}. ' if car.license_plate else '. '}"
+            "Consulte por asistencia técnica."
+        )
         return False, message, None, None
 
     return True, "", car.soa_file_path, car.mercosur_file_path
@@ -47,7 +49,7 @@ def find_files(
         reason = policy.obs
         message = (
             f"Poliza {policy_number} de {company}. No se pudo descargar los archivos"
-            + (f". Motivo: {reason}" if reason else ".")
+            f"{f'. Motivo: {reason}' if reason else '.'}"
         )
         return False, message, None, None
 
@@ -59,7 +61,7 @@ def find_files(
         reason = policy.obs
         message = (
             f"Poliza {policy_number} fue cancelada ó no figura en el sistema de {company}"
-            + (f". Motivo: {reason}" if reason else ".")
+            f"{f'. Motivo: {reason}' if reason else '.'}"
         )
         return False, message, None, None
 
