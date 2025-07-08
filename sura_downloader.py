@@ -265,11 +265,13 @@ class SuraDownloader(BaseDownloader):
                         ),
                     )
                     filename = "soa.pdf"  # Certificado de SOA
-                    folder = self.get_folder_path(policy, vehicle_plate)
+                    rel_path = self.get_relative_path(policy, vehicle_plate)
+                    folder = self.get_folder_path(rel_path)
                     vehicle["folder"] = folder
-                    vehicle["soa"] = self.download_file_from_starter(
+                    self.download_file_from_starter(
                         starter, FilenameRenameStrategy(folder, filename)
                     )
+                    vehicle["soa"] = f"{rel_path}/{filename}"
 
                     vehicle["mercosur"] = ""
                     if not policy.get("soa_only", False):
@@ -282,9 +284,10 @@ class SuraDownloader(BaseDownloader):
                         )
                         filename = "mercosur.pdf"  # Certificado de Mercosur
                         try:
-                            vehicle["mercosur"] = self.download_file_from_starter(
+                            self.download_file_from_starter(
                                 starter, FilenameRenameStrategy(folder, filename)
                             )
+                            vehicle["mercosur"] = f"{rel_path}/{filename}"
                         except TimeoutError:
                             pass
 

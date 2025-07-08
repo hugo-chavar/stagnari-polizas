@@ -309,7 +309,8 @@ class BaseDownloader(ABC):
 
         for vehicle in policy["vehicles"]:
             license_plate = vehicle.get("license_plate")
-            folder = self.get_folder_path(policy, license_plate)
+            rel_path = self.get_relative_path(policy, license_plate)
+            folder = self.get_folder_path(rel_path)
             soa_file_is_valid, _ = is_valid_pdf(folder, "soa.pdf")
             if soa_only:
                 vehicle["files_are_valid"] = soa_file_is_valid
@@ -320,11 +321,9 @@ class BaseDownloader(ABC):
                 )
             if vehicle["files_are_valid"]:
                 vehicle["folder"] = folder
-                vehicle["soa"] = os.path.join(folder, "soa.pdf")
+                vehicle["soa"] = f"{rel_path}/soa.pdf"
                 vehicle["status"] = "Ok"
-                vehicle["mercosur"] = (
-                    os.path.join(folder, "mercosur.pdf") if not soa_only else ""
-                )
+                vehicle["mercosur"] = f"{rel_path}/mercosur.pdf" if not soa_only else ""
         policy["downloaded"] = all(
             vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
         )
@@ -347,12 +346,11 @@ class BaseDownloader(ABC):
 
     def get_relative_path(self, policy, vehicle_plate):
         return (
-            f"{self.name()}/{policy["number"]}/{policy["year"]}/"
-            f"{f'{vehicle_plate}/' if vehicle_plate else ''}"
+            f"{self.name()}/{policy["number"]}/{policy["year"]}"
+            f"{f'/{vehicle_plate}' if vehicle_plate else ''}"
         )
 
-    def get_folder_path(self, policy, vehicle_plate):
-        rel_path = self.get_relative_path(policy, vehicle_plate)
+    def get_folder_path(self, rel_path):
         return os.path.join(
             self.download_folder,
             rel_path,
