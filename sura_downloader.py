@@ -150,8 +150,14 @@ class SuraDownloader(BaseDownloader):
     ) -> list[dict]:
         reconciled_vehicles = []
 
-        if len(page_data) == 1 and len(policy_data) == 1:
-            page_vehicle = page_data[0]
+        current_page_data = [
+            page_vehicle
+            for page_vehicle in page_data
+            if page_vehicle.get("Estado") != "Excluido"
+        ]
+
+        if len(current_page_data) == 1 and len(policy_data) == 1:
+            page_vehicle = current_page_data[0]
             policy_vehicle = policy_data[0]
 
             page_has_empty_plate = page_vehicle.get("Matrícula", "").upper() in (

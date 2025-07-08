@@ -321,6 +321,7 @@ class BaseDownloader(ABC):
             if vehicle["files_are_valid"]:
                 vehicle["folder"] = folder
                 vehicle["soa"] = os.path.join(folder, "soa.pdf")
+                vehicle["status"] = "Ok"
                 vehicle["mercosur"] = (
                     os.path.join(folder, "mercosur.pdf") if not soa_only else ""
                 )
