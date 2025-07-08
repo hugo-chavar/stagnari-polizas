@@ -70,8 +70,7 @@ def send_message(user_number, message):
 
 
 def send_file(user_number, file_path, body="Requested document"):
-    filename = os.path.basename(file_path)
-    public_url = f"{SHARED_FILES_URL}/{filename}"
+    public_url = f"{SHARED_FILES_URL}/{file_path}"
 
     client.messages.create(
         from_=TWILIO_PHONE_NUMBER,
