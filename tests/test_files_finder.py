@@ -284,7 +284,7 @@ def make_policy_mock(policy_data, cars_data):
             "args": ("SURA", "2089303", "AVI1745", False),
             "expected": (
                 False,
-                "Problema inesperado al obtener el SOA de poliza 2089303 de SURA. Consulte por asistencia técnica.",
+                "Poliza 2089303 fue cancelada ó no figura en el sistema de SURA.",
                 None,
                 None,
             ),
