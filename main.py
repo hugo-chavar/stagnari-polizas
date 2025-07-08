@@ -14,6 +14,7 @@ from chat_history_db import (
     get_all_users,
 )
 from split_messages import split_long_message
+from files_finder import find_files
 
 import os
 import time
@@ -171,3 +172,35 @@ def get_users(credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
         users = get_all_users()
         return {"users": users}
+
+
+@app.post("/sf")
+def send_files(
+    item: Item,
+    background_tasks: BackgroundTasks,
+    credentials: HTTPBasicCredentials = Depends(security),
+):
+    if verify_admin(credentials):
+        policy_number = item.message.strip()
+        license_plate = item.number.strip()
+        user_wants_soa = policy_number[0] == "2"
+        user_wants_mcs = policy_number[1] == "1"
+        sender_number = "whatsapp:+5491134837950"
+        ok, msg, soa, mcs = find_files(
+            "SURA", policy_number, license_plate, user_wants_mcs
+        )
+
+        if not ok:
+            bot_response = msg
+        else:
+            if user_wants_soa:
+                bot_response = "Enviando: SOA"
+                background_tasks.add_task(
+                    send_file, sender_number, soa, "Certificado SOA"
+                )
+            if user_wants_mcs:
+                bot_response += ", Mercosur"
+                background_tasks.add_task(
+                    send_file, sender_number, mcs, "Certificado Mercosur"
+                )
+        return {"response": bot_response}
