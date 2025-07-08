@@ -109,6 +109,7 @@ class Item(BaseModel):
 @app.get("/")
 def read_root(credentials: HTTPBasicCredentials = Depends(security)):
     if verify_admin(credentials):
+        print(str(SHARED_FILES_URL))
         return {"message": "Hello Admin"}
 
 
