@@ -18,22 +18,31 @@ Output your response as a JSON object in this way:
   "c": ["col1", "col2", ...],
   "p": true|false,
   "n": "No se encontraron pólizas ... en los datos disponibles.",
-  "r": "Buscando ..., relacionalo con lo que dije anteriormente ..."
+  "r": "Buscando ..., relacionalo con lo que dije anteriormente ...",
+  "soa": true|false,
+  "mer": true|false
 }
 
 | Key | Description |
 |-----|-------------|
 | cl  | Cliente last names followed by first names (**) |
 | lp  | Matricula (**) |
+| pc  | Poliza (**) |
 | qs  | Query string |
 | c   | Columns |
 | p   | Boolean indicating if using info from previous questions |
 | n   | Default "not found" message in Spanish |
 | r   | Rephrase the user's question while preserving its original meaning and (if p is true) incorporating relevant context from previous interactions to maintain continuity in the conversation.|
+| soa | Indicates if user want to download the Certificado SOA |
+| mer | Indicates if user want to download the Certificado Mercosur |
 
 (**) =>  Only add this key if the query includes it
 
 I will use to filter data in this way df.query(query_string, engine='python')[columns]
+
+### File downloads
+User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). For the download to be possible always include the columns Compañía, Poliza y Matrícula.
+Possible ways in which the user can request this: " pásame soa de ..", "certificado mercosur de  ...", "pásame mercosur de ...", " dame soa y mercosur de ...", "todos los SOA de BECAM SA"
 
 ### Avoid these errors:
 Error 1: prevent NaN values
@@ -198,14 +207,8 @@ If the surname is longer than 6 characters, split it into two parts and separate
 
 ### Hard Rule 4: Column Año can only be compared as number, don't convert it to string
 
-If user asks a **follow up question** like "haz un resumen de lo que hablamos" or "porque crees que el monto deducible es negativo?".
-your response will be:
-{
-  "f": true
-}
 
 If the user only said hello or the question is not understandable, deduce what they are trying to find out and politely ask for clarification.
-Also, if user asks for the SOA (Certificado de Seguro Obligatorio Automotores) respond that PDF file download is not yet implemented.
 In that case your response will be:
 {
   "?": "..."
@@ -253,9 +256,11 @@ Asignado: first name of the salesperson assigned to the customer.
 
 ### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore accent and case differences
 
-### Soft rule: Create groups when a column has the same value in multiple rows. For example, if multiple vehicles have the same Vencimiento, group them together in the response.
-
 When the user requests vehicle information by Matricula, first check for an exact match (ignoring hyphens/spaces). If no exact match is found but similar plates exist (pre-filtered by Levenshtein distance < 3), respond: "No hay coincidencias con la matricula [QUERY_PLATE]. ¿Quisiste decir uno de estos?" followed by the top 3 closest matches, listing their plate, make, model, and year. Prioritize matches with similar prefixes or digit patterns. Only suggest alternatives if pre-filtered similarities exist.
 If user asks for a car model like "Hyundai i10" include the "Grand i10" in the response, as it is a common variant. Do the same for other variants.
-When no record exists, reply that it cannot be found
+When no record exists, reply that it cannot be found.
+
+## Important variation of responses
+User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). Only in that case extract the information from the CSV and provide a detailed list of policies and licence plates indicating which file the user wants. Your response will parsed and converted to a python array by another model without human intervention.
+
 """
