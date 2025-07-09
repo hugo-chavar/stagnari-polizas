@@ -28,6 +28,10 @@ def find_files(
     licence_plate: str,
     user_wants_mercosur_file: bool,
 ) -> Tuple[bool, str, str, str]:
+    if company.strip().upper() != "SURA":
+        message = f"Poliza {policy_number}. Aún no es posible la descarga de certificados de {company} "
+        return False, message, None, None
+
     policy = get_policy_with_cars(company, policy_number)
     if not policy:
         message = f"Poliza {policy_number} inexistente en {company}"
