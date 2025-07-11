@@ -218,7 +218,7 @@ In that case your response will be:
 
 
 def get_response_prompt():
-    return f"""
+    return """
 You are a data analysis assistant. Answer questions based on data in CSV format. A previous step filters the data so you do not receive the entire dataset.
   
 ### Rules:
@@ -254,7 +254,7 @@ Asignado: first name of the salesperson assigned to the customer.
   a. Cliente, Poliza, Cobertura, Deducible, Vencimiento, Compañia
   b. Cliente, Marca, Modelo, Año, Combustible, Matricula
 
-### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore accent and case differences
+### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore accent and case differences. Always accept partial names as valid, example: User asks for "ADOLFO DOMINGUEZ" and the data has "ESMERODE DOMINGUEZ, ANTONIO ADOLFO" gives that name as correct.
 
 When the user requests vehicle information by Matricula, first check for an exact match (ignoring hyphens/spaces). If no exact match is found but similar plates exist (pre-filtered by Levenshtein distance < 3), respond: "No hay coincidencias con la matricula [QUERY_PLATE]. ¿Quisiste decir uno de estos?" followed by the top 3 closest matches, listing their plate, make, model, and year. Prioritize matches with similar prefixes or digit patterns. Only suggest alternatives if pre-filtered similarities exist.
 If user asks for a car model like "Hyundai i10" include the "Grand i10" in the response, as it is a common variant. Do the same for other variants.
@@ -262,5 +262,66 @@ When no record exists, reply that it cannot be found.
 
 ## Important variation of responses
 User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). Only in that case extract the information from the CSV and provide a detailed list of policies and licence plates indicating which file the user wants. Your response will parsed and converted to a python array by another model without human intervention.
+For each car, specify which file the user wants to download (SOA only, Mercosur only, or both)
 
+"""
+
+
+def get_parse_list_prompt():
+    return """
+Parse the following input text, which contains vehicle and insurance policy information, and output a Python-readable list of dictionaries with standardized English keys. Ensure the output is minimal, clean, and easy to parse programmatically.  
+
+### Requirements:  
+1. **Mandatory fields** (must be included for each entry):  
+   - `license_plate` (Spanish: "Matrícula")  
+   - `policy_number` (Spanish: "Póliza")  
+   - `company` (Spanish: "Compañía")  
+   - `download_soa` (bool indicating if user wants to download the SOA certificate)  
+   - `download_mer` (bool indicating if user wants to download the Mercosur certificate)  
+
+2. **Optional fields** (include if available in the input):  
+   - `client` (Spanish: "Cliente")  
+   - `vehicle` (Spanish: "Vehículo")  
+
+3. **Format rules**:  
+   - Use lowercase snake_case for keys.  
+   - Omit any other fields (e.g., "Vencimiento").  
+   - If the input is a single vehicle, return a list with one dictionary.  
+
+### Examples:  
+#### Input Example 1:  
+```  
+Aquí están los datos para generar los Certificados SOA para TRANSBIANCO SA:  
+1. Matrícula: SI8375 - Póliza: 43672 - Compañía: BSE  
+2. Matrícula: SY4416 - Póliza: 47323 - Compañía: BSE  
+```  
+#### Output Example 1:  
+```  
+[  
+    {"license_plate": "SI8375", "policy_number": "43672", "company": "BSE", "download_soa": true, "download_mer": false},  
+    {"license_plate": "SY4416", "policy_number": "47323", "company": "BSE", "download_soa": true, "download_mer": false}  
+]  
+```  
+
+#### Input Example 2:  
+```  
+- *Matrícula:* SD6816  
+- *Póliza:* 957105  
+- *Compañía:* SURA  
+- *Cliente:* Briano Fontes, Maria Jose  
+- *Vehículo:* CITROEN C3 1.0 FEEL PACK BITONO (2025) - NAFTA  
+```  
+#### Output Example 2:  
+```  
+[  
+    {  
+        "license_plate": "SD6816",  
+        "policy_number": "957105",  
+        "company": "SURA",  
+        "client": "Briano Fontes, Maria Jose",  
+        "vehicle": "CITROEN C3 1.0 FEEL PACK BITONO (2025) - NAFTA",
+        "download_soa": true, "download_mer": false
+    }  
+]  
+```
 """
