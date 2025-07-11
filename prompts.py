@@ -269,59 +269,85 @@ For each car, specify which file the user wants to download (SOA only, Mercosur 
 
 def get_parse_list_prompt():
     return """
-Parse the following input text, which contains vehicle and insurance policy information, and output a Python-readable list of dictionaries with standardized English keys. Ensure the output is minimal, clean, and easy to parse programmatically.  
+Parse the input text containing vehicle/insurance data and output a **structured JSON** where:  
+1. **Top-level keys** are insurance companies (`company`).  
+2. **Each company** contains a list of policies (`policy_number`).  
+3. **Each policy** includes:  
+   - `client` (if available),  
+   - `download_soa` (default `true` unless specified otherwise),  
+   - `download_mer` (default `false` unless specified otherwise),  
+   - `vehicles` list with `license_plate` and `desc` (if available).  
 
-### Requirements:  
-1. **Mandatory fields** (must be included for each entry):  
-   - `license_plate` (Spanish: "Matrícula")  
-   - `policy_number` (Spanish: "Póliza")  
-   - `company` (Spanish: "Compañía")  
-   - `download_soa` (bool indicating if user wants to download the SOA certificate)  
-   - `download_mer` (bool indicating if user wants to download the Mercosur certificate)  
+#### **Requirements:**  
+- **Mandatory fields** (per policy):  
+  - `policy_number` (from "Póliza"),  
+  - `download_soa` (boolean; assume `true` if not mentioned),  
+  - `download_mer` (boolean; assume `false` if not mentioned).  
 
-2. **Optional fields** (include if available in the input):  
-   - `client` (Spanish: "Cliente")  
-   - `vehicle` (Spanish: "Vehículo")  
+- **Optional fields**:  
+  - `client` (from "Cliente"),  
+  - `desc` (from "Vehículo"; omit if unavailable).  
 
-3. **Format rules**:  
-   - Use lowercase snake_case for keys.  
-   - Omit any other fields (e.g., "Vencimiento").  
-   - If the input is a single vehicle, return a list with one dictionary.  
+- **Structure rules**:  
+  - Group by `company` → `policy_number` → `vehicles`.  
+  - Use lowercase snake_case for keys.  
+  - Omit fields like "Vencimiento".  
 
-### Examples:  
-#### Input Example 1:  
+#### **Examples:**  
+##### **Input Example 1:**  
 ```  
-Aquí están los datos para generar los Certificados SOA para TRANSBIANCO SA:  
-1. Matrícula: SI8375 - Póliza: 43672 - Compañía: BSE  
-2. Matrícula: SY4416 - Póliza: 47323 - Compañía: BSE  
-```  
-#### Output Example 1:  
-```  
-[  
-    {"license_plate": "SI8375", "policy_number": "43672", "company": "BSE", "download_soa": true, "download_mer": false},  
-    {"license_plate": "SY4416", "policy_number": "47323", "company": "BSE", "download_soa": true, "download_mer": false}  
-]  
+1. Matrícula: SDB4050 - Póliza: 8585536 - Compañía: BSE - Vehículo: SUZUKI ALTO 800 GL (2017)  
+2. Matrícula: AEW4763 - Póliza: 8585536 - Compañía: BSE - Vehículo: FORD F-100 (2002)  
+3. Matrícula: SDD6542 - Póliza: 9176866 - Compañía: SURA - Cliente: Pérez, Juan - download_soa: no  
 ```  
 
-#### Input Example 2:  
-```  
-- *Matrícula:* SD6816  
-- *Póliza:* 957105  
-- *Compañía:* SURA  
-- *Cliente:* Briano Fontes, Maria Jose  
-- *Vehículo:* CITROEN C3 1.0 FEEL PACK BITONO (2025) - NAFTA  
-```  
-#### Output Example 2:  
-```  
-[  
+##### **Output Example 1:**  
+```json  
+{  
+  "BSE": [  
     {  
-        "license_plate": "SD6816",  
-        "policy_number": "957105",  
-        "company": "SURA",  
-        "client": "Briano Fontes, Maria Jose",  
-        "vehicle": "CITROEN C3 1.0 FEEL PACK BITONO (2025) - NAFTA",
-        "download_soa": true, "download_mer": false
+      "policy_number": "8585536",  
+      "download_soa": true,  
+      "download_mer": false,  
+      "vehicles": [  
+        {"license_plate": "SDB4050", "desc": "SUZUKI ALTO 800 GL (2017)"},  
+        {"license_plate": "AEW4763", "desc": "FORD F-100 (2002)"}  
+      ]  
     }  
-]  
-```
+  ],  
+  "SURA": [  
+    {  
+      "policy_number": "9176866",  
+      "client": "Pérez, Juan",  
+      "download_soa": false,  
+      "download_mer": false,  
+      "vehicles": [  
+        {"license_plate": "SDD6542"}  
+      ]  
+    }  
+  ]  
+}  
+```  
+
+##### **Input Example 2 (Single Vehicle):**  
+```  
+- Matrícula: SBN4905 - Póliza: 1914467 - Compañía: SURA - Vehículo: VOLKSWAGEN GOL 1.6 - download_mer: yes  
+```  
+
+##### **Output Example 2:**  
+```json  
+{  
+  "SURA": [  
+    {  
+      "policy_number": "1914467",  
+      "download_soa": true,  
+      "download_mer": true,  
+      "vehicles": [  
+        {"license_plate": "SBN4905", "desc": "VOLKSWAGEN GOL 1.6"}  
+      ]  
+    }  
+  ]  
+}  
+```  
+
 """
