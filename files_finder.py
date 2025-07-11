@@ -1,5 +1,5 @@
-import logging, os
-from typing import List, Tuple, Optional
+import logging
+from typing import Tuple
 from chat_history_db import get_policy_with_cars
 from models import Car, Policy
 from dotenv import load_dotenv
