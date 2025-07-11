@@ -281,8 +281,8 @@ Parse the input text containing vehicle/insurance data and output a **structured
 #### **Requirements:**  
 - **Mandatory fields** (per policy):  
   - `policy_number` (from "Póliza"),  
-  - `download_soa` (boolean; assume `true` if not mentioned),  
-  - `download_mer` (boolean; assume `false` if not mentioned).  
+  - `download_soa` (boolean indicates if user wants to download the SOA certificate; assume `true` if not mentioned),  
+  - `download_mer` (boolean indicates if user wants to download the Mercosur certificate; assume `false` if not mentioned).  
 
 - **Optional fields**:  
   - `client` (from "Cliente"),  
@@ -291,15 +291,20 @@ Parse the input text containing vehicle/insurance data and output a **structured
 - **Structure rules**:  
   - Group by `company` → `policy_number` → `vehicles`.  
   - Use lowercase snake_case for keys.  
-  - Omit fields like "Vencimiento".  
+  - Omit other fields like "Vencimiento".  
 
 #### **Examples:**  
 ##### **Input Example 1:**  
+
+Aquí están los datos para generar los Certificados SOA para TRANSBIANCO SA:
 ```  
 1. Matrícula: SDB4050 - Póliza: 8585536 - Compañía: BSE - Vehículo: SUZUKI ALTO 800 GL (2017)  
 2. Matrícula: AEW4763 - Póliza: 8585536 - Compañía: BSE - Vehículo: FORD F-100 (2002)  
-3. Matrícula: SDD6542 - Póliza: 9176866 - Compañía: SURA - Cliente: Pérez, Juan - download_soa: no  
+3. Matrícula: SDD6542 - Póliza: 9176866 - Compañía: SURA
 ```  
+
+Para el caso de SURA también hay que generar el Certificado Mercosur
+
 
 ##### **Output Example 1:**  
 ```json  
@@ -319,8 +324,8 @@ Parse the input text containing vehicle/insurance data and output a **structured
     {  
       "policy_number": "9176866",  
       "client": "Pérez, Juan",  
-      "download_soa": false,  
-      "download_mer": false,  
+      "download_soa": true,  
+      "download_mer": true,  
       "vehicles": [  
         {"license_plate": "SDD6542"}  
       ]  
@@ -331,7 +336,9 @@ Parse the input text containing vehicle/insurance data and output a **structured
 
 ##### **Input Example 2 (Single Vehicle):**  
 ```  
-- Matrícula: SBN4905 - Póliza: 1914467 - Compañía: SURA - Vehículo: VOLKSWAGEN GOL 1.6 - download_mer: yes  
+Aquí están los datos para generar el Certificado Mercosur:
+
+- Matrícula: SBN4905 - Póliza: 1914467 - Compañía: SURA - Vehículo: VOLKSWAGEN GOL 1.6 
 ```  
 
 ##### **Output Example 2:**  
@@ -340,7 +347,7 @@ Parse the input text containing vehicle/insurance data and output a **structured
   "SURA": [  
     {  
       "policy_number": "1914467",  
-      "download_soa": true,  
+      "download_soa": false,  
       "download_mer": true,  
       "vehicles": [  
         {"license_plate": "SBN4905", "desc": "VOLKSWAGEN GOL 1.6"}  
