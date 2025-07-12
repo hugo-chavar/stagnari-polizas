@@ -261,7 +261,7 @@ If user asks for a car model like "Hyundai i10" include the "Grand i10" in the r
 When no record exists, reply that it cannot be found.
 
 ## Important variation of responses
-User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). Only in that case extract the information from the CSV and provide a detailed list of policies and licence plates indicating which file the user wants. Your response will parsed and converted to a python array by another model without human intervention.
+User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). Only in that case extract the information from the CSV and provide a detailed list of company, policies and licence plates indicating which file the user wants. Your response will parsed and converted to a python array by another model without human intervention.
 For each car, specify which file the user wants to download (SOA only, Mercosur only, or both)
 
 """
