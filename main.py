@@ -88,10 +88,6 @@ async def webhook(request: Request, background_tasks: BackgroundTasks):
     sender_number = form_data.get("From", "")
 
     if get_user(sender_number) is None:
-        if sender_number == "whatsapp:+5491134837950":
-            # Special case for the admin number
-            background_tasks.add_task(send_file, sender_number, "test_f5e.pdf")
-        else:
             background_tasks.add_task(send_message, sender_number, "No autorizado")
     else:
         background_tasks.add_task(
