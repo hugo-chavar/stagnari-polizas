@@ -1,6 +1,6 @@
 import logging
 from policy_data import load_csv_data, apply_filter
-from ai_agents import generate_query, generate_response
+from ai_agents import generate_query, generate_response, get_file_list, get_parsed_list
 from filter_utils import remove_spanish_accents
 
 logger = logging.getLogger(__name__)
@@ -64,8 +64,22 @@ def process_incoming_message(filter, incoming_message, to_number):
     response = generate_response(
         incoming_message, filtered_data, to_number, negative_response
     )
+    
+    file_list = None
+    if filter.get("soa", False) or filter.get("mer", False):
+        parsed_list = get_parsed_list(response)
+        file_list, ok_count, error_count, error_msg = get_file_list(parsed_list)
+        if error_count > 0:
+            adj = "Algunas de las" if ok_count > 0 else "Todos las"
+            response = (
+                f"{response}\n\n"
+                f"*{adj} polizas solicitadas no se pueden descargar:*\n"
+                f"{error_msg}"
+                f"{f'\n\n*Comienza la descarga de certificados de {ok_count} vehiculos ...*' if ok_count > 0 else ''}"
+            )
+    
     logger.info(f"Final response:\n{response}")
-    return response, None
+    return response, file_list
 
 
 def get_filtered_data(filter, incoming_message):

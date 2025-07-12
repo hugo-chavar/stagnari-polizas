@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import prompts
 from chat_history_db import save_message, get_client_history, save_query, get_query_history
-from policy_data import get_surnames_prompt
+from files_finder import find_files
 
 load_dotenv()
 
@@ -121,3 +121,85 @@ def generate_response(question, csv, client_number, negative_response):
     else:
         logger.info("No data found for the query.")
         return negative_response
+
+
+def _prepare_get_parsed_list_messages(text):
+    """Prepare the messages for the API call."""
+    prompt = prompts.get_parse_list_prompt()
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "system", "content": (
+                "### Task:\n"
+                "Process the following input text: \n"
+                "``` \n"
+                f"{text}"
+                "``` \n"
+            )},
+    ]
+    
+    return messages
+
+
+def get_parsed_list(text_list):
+
+    messages = _prepare_get_parsed_list_messages(text_list)
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=messages,
+        stream=False
+    )
+    model_response = response.choices[0].message.content
+    logger.info(f"Get Files input:\n{text_list}")
+    logger.info(f"List:\n{model_response}")
+    return json.loads(clean_llm_json(model_response))
+
+
+def add_file_paths(parsed_list):
+
+    for company, policies in parsed_list.items():
+        for p in policies:
+            for v in p["vehicles"]:
+                ok, msg, soa_path, mer_path = find_files(
+                    company=company,
+                    policy_number=p["policy_number"],
+                    license_plate=v["license_plate"],
+                    user_wants_mercosur_file=p["download_mer"]
+                )
+                v["ok"] = ok
+                v["error_msg"] = msg
+                v["soa_path"] = soa_path
+                v["mer_path"] = mer_path
+    return parsed_list
+
+
+def get_file_list(parsed_list):
+    file_list = []
+    ok_count = error_count = 0 
+    error_msg = None
+    
+    policy_list = add_file_paths(parsed_list)
+    
+    for _, policies in policy_list.items():
+        for p in policies:
+            for v in p["vehicles"]:
+                if v["ok"]:
+                    ok_count += 1
+                    details = f"Poliza {p["policy_number"]} matricula {v["license_plate"]}"
+                    if v["soa_path"]:
+                        file_list.append({
+                            "path": v["soa_path"],
+                            "name": f"Certificado SOA de {details}"
+                        })
+                    if v["mer_path"]:
+                        file_list.append({
+                            "path": v["mer_path"],
+                            "name": f"Certificado Mercosur de {details}"
+                        })
+                else:
+                    error_count += 1
+                    if not error_msg:
+                        error_msg = v["error_msg"]
+                    else:
+                        error_msg = f"{error_msg}\n\n{v["error_msg"]}"
+                
+    return file_list, ok_count, error_count, error_msg
