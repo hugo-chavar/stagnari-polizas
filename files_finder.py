@@ -25,7 +25,7 @@ def get_file_paths(policy: Policy, car: Car) -> Tuple[bool, str, str, str]:
 def find_files(
     company: str,
     policy_number: str,
-    licence_plate: str,
+    license_plate: str,
     user_wants_mercosur_file: bool,
 ) -> Tuple[bool, str, str, str]:
     if company.strip().upper() != "SURA":
@@ -65,10 +65,10 @@ def find_files(
         message = f"Poliza {policy_number} de {company} no tiene Certificado Mercosur"
         return False, message, None, None
 
-    if licence_plate:
-        car = policy.get_car(licence_plate)
+    if license_plate:
+        car = policy.get_car(license_plate)
         if not car:
-            message = f"Poliza {policy_number} de {company} no contiene un vehiculo con matricula {licence_plate}"
+            message = f"Poliza {policy_number} de {company} no contiene un vehiculo con matricula {license_plate}"
             return False, message, None, None
 
         return get_file_paths(policy, car)
