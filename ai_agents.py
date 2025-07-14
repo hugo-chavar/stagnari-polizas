@@ -178,6 +178,8 @@ def get_file_list(parsed_list):
     error_msg = None
     
     policy_list = add_file_paths(parsed_list)
+    download_soa = parsed_list.get("download_soa", True)
+    download_mer = parsed_list.get("download_mer", False)
     
     for _, policies in policy_list.items():
         for p in policies:
@@ -185,12 +187,12 @@ def get_file_list(parsed_list):
                 if v["ok"]:
                     ok_count += 1
                     details = f"Poliza {p["policy_number"]} matricula {v["license_plate"]}"
-                    if v["soa_path"]:
+                    if download_soa and v["soa_path"]:
                         file_list.append({
                             "path": v["soa_path"],
                             "name": f"Certificado SOA de {details}"
                         })
-                    if v["mer_path"]:
+                    if download_mer and v["mer_path"]:
                         file_list.append({
                             "path": v["mer_path"],
                             "name": f"Certificado Mercosur de {details}"
