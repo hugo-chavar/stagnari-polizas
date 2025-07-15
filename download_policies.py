@@ -17,7 +17,9 @@ import chat_history_db as db
 from models import Policy, Car
 from policy_data import get_grouped_policy_data, load_csv_data
 from sura_downloader import SuraDownloader
+from bse_downloader import BseDownloader
 from policy_driver import PolicyDriver
+from driver_creator import DriverCreator
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +127,7 @@ for company, policies in policy_data.items():
         new_policy_data[company] = kept_policies
 
 
-sura_downloader = SuraDownloader(PolicyDriver(headless=False))
+sura_downloader = SuraDownloader(PolicyDriver(DriverCreator(), headless=False))
 
 for company, policies in new_policy_data.items():
     if company != "SURA":

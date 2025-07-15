@@ -4,8 +4,6 @@ import time
 from enum import Enum, auto
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -73,22 +71,25 @@ class LocatorType(Enum):
 
 
 class Locator:
+    _MAPPING = {
+        LocatorType.ID: By.ID,
+        LocatorType.CSS: By.CSS_SELECTOR,
+        LocatorType.XPATH: By.XPATH,
+        LocatorType.CLASS: By.CLASS_NAME,
+        LocatorType.NAME: By.NAME,
+        LocatorType.TAG: By.TAG_NAME,
+        LocatorType.LINK_TEXT: By.LINK_TEXT,
+        LocatorType.PARTIAL_LINK_TEXT: By.PARTIAL_LINK_TEXT,
+    }
     def __init__(self, by: LocatorType, value: str):
         self.by = by
         self.value = value
 
     def to_selenium(self):
-        mapping = {
-            LocatorType.ID: By.ID,
-            LocatorType.CSS: By.CSS_SELECTOR,
-            LocatorType.XPATH: By.XPATH,
-            LocatorType.CLASS: By.CLASS_NAME,
-            LocatorType.NAME: By.NAME,
-            LocatorType.TAG: By.TAG_NAME,
-            LocatorType.LINK_TEXT: By.LINK_TEXT,
-            LocatorType.PARTIAL_LINK_TEXT: By.PARTIAL_LINK_TEXT,
-        }
-        return (mapping[self.by], self.value)
+        return (self._MAPPING[self.by], self.value)
+    
+    def __str__(self):
+        return f"{self._MAPPING[self.by]} - {self.value}"
 
 
 class PolicyDriver:
@@ -96,15 +97,18 @@ class PolicyDriver:
     Wrapper class for Selenium WebDriver that abstracts all Selenium-specific details.
     """
 
-    def __init__(self, headless=True):
+    def __init__(self, driver_creator, headless=True):
         self.folder = os.getenv("TMP_DOWNLOAD_FOLDER")
         self.screenshot_folder = os.getenv("DEBUG_SCREENSHOT_FOLDER", self.folder)
-        # self.executable_path = os.getenv("DRIVER_PATH")
         self.screenshot_counter = 0
+        self.headless = headless
+        self.driver_creator = driver_creator
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
 
-        # chrome_options = Options()
+    def init_driver(self):
         chrome_options = webdriver.ChromeOptions()
-        if headless:
+        if self.headless:
             chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -119,9 +123,6 @@ class PolicyDriver:
             "--force-device-scale-factor=1"
         )  # Prevent scaling issues
 
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
-
         prefs = {
             "download.default_directory": self.folder,
             "download.prompt_for_download": False,
@@ -131,18 +132,7 @@ class PolicyDriver:
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
-        # service = Service(executable_path=self.executable_path)
-        # self.driver = webdriver.Chrome(service=service, options=chrome_options)
-
-        # Connect to the Selenium server running in the container
-        selenium_host = os.getenv(
-            "SELENIUM_HOST", "localhost"
-        )  # Defaults to 'localhost' if not set
-
-        self.driver = webdriver.Remote(
-            command_executor=f"http://{selenium_host}:4444/wd/hub",
-            options=chrome_options,
-        )
+        self.driver = self.driver_creator.create()
         self.driver.implicitly_wait(10)
         logger.info("WebDriver instance created")
 
@@ -260,9 +250,9 @@ class PolicyDriver:
             wait = WebDriverWait(self.driver, timeout)
             return wait.until(EC.element_to_be_clickable(locator.to_selenium()))
         except TimeoutException:
-            raise TimeoutError(f"Waiting for clickable element {locator.value}")
+            raise TimeoutError(f"Waiting for clickable element {str(locator)}")
         except NoSuchElementException:
-            raise ElementNotFoundException(locator.value)
+            raise ElementNotFoundException(str(locator))
 
     def click(self, locator: Locator):
         """Click on the specified element."""
@@ -281,7 +271,7 @@ class PolicyDriver:
                     return
                 except ElementClickInterceptedException:
                     attempts += 1
-            raise ElementNotInteractableError(locator.value)
+            raise ElementNotInteractableError(str(locator))
 
     def send_keys(self, locator: Locator, text: str):
         """Send text to the specified element."""
@@ -289,7 +279,7 @@ class PolicyDriver:
             element = self.wait_for_element(locator)
             element.send_keys(text)
         except ElementNotInteractableException:
-            raise ElementNotInteractableError(locator.value)
+            raise ElementNotInteractableError(str(locator))
 
     def select_dropdown_by_value(self, locator: Locator, value: str):
         """Select an option from a dropdown by value."""
@@ -302,7 +292,7 @@ class PolicyDriver:
         except NoSuchElementException:
             raise ElementNotFoundException(f"Option with value {value} not found")
         except ElementNotInteractableException:
-            raise ElementNotInteractableError(locator.value)
+            raise ElementNotInteractableError(str(locator))
 
     def is_element_present(self, locator: Locator, timeout=5):
         """Check if an element is present without waiting the full timeout."""
@@ -374,13 +364,13 @@ class PolicyDriver:
         try:
             rows = self.find_elements(locator)
             if not rows:
-                logger.warning(f"No rows found matching locator: {locator.value}")
+                logger.warning(f"No rows found matching locator: {str(locator)}")
             return len(rows)
         except ElementNotFoundException:
             # Return 0 if the element pattern exists but no rows are present
             return 0
         except Exception as e:
-            raise DriverException(f"Error getting row count: {str(e)}")
+            raise DriverException(f"Error getting row count: {str(e)} - locator: {str(locator)}")
 
     def execute_script(self, script: str):
         """Execute the specified script."""
@@ -460,3 +450,14 @@ class PolicyDriver:
             self.driver.back()
         except WebDriverException as e:
             raise DriverException(f"Failed to navigate back: {str(e)}")
+
+
+    def set_checkbox_state(self, locator, desired_state):
+        """
+        Set checkbox to desired state (True=checked, False=unchecked)
+        Only clicks if current state doesn't match desired state
+        """
+        element = self.find_element(locator)
+        current_state = element.is_selected()
+        if current_state != desired_state:
+            element.click()

@@ -140,6 +140,7 @@ class BaseDownloader(ABC):
 
     def login(self):
         """Template method for the login process."""
+        self.driver.init_driver()
         logger.info(f"Logging in to {self.name()} at {self.login_url}")
         self.driver.navigate(self.login_url)
         self.wait_login_page()
@@ -230,7 +231,7 @@ class BaseDownloader(ABC):
         try:
             self._search_for_policy(policy)
             count = self.get_endorsements_count()
-            logger.info(f"Policy has {count} endorsements")
+            logger.debug(f"Policy has {count} endorsements")
             spreadsheet_vehicle_count = len(policy["vehicles"])
             logger.info(f"Policy has {spreadsheet_vehicle_count} vehicles")
 
