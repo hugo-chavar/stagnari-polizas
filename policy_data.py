@@ -313,9 +313,9 @@ def get_grouped_policy_data():
 
     # Group by company and policy
     result = {}
-    bicycle_brands = ["OTRAS MARCAS", "RAVE", "GYROOR", "BIANCHI"]
+    bicycle_brands = ["OTRAS MARCAS", "RAVE", "GYROOR", "BIANCHI", "TREK"]
     cancelled_policies = [
-        "1938091",
+        "1938091", # SURA
         "1940520",
         "1961256",
         "2123126",
@@ -323,6 +323,8 @@ def get_grouped_policy_data():
         "2160105",
         "2172904",
         "9801834",
+        "9279761", # BSE
+        "9280934", # BSE
     ]
 
     # Iterate through each unique company
