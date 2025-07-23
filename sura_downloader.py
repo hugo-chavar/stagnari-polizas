@@ -134,7 +134,7 @@ class SuraDownloader(BaseDownloader):
             )
         return vehicles_count
 
-    def get_vehicles_data(self) -> int:
+    def get_vehicles_data(self) -> list[dict]:
         table_id = "GrdItems"
         try:
             self.driver.wait_for_element(Locator(LocatorType.ID, table_id))
@@ -220,23 +220,15 @@ class SuraDownloader(BaseDownloader):
 
         return reconciled_vehicles
 
-    def download_policy_files(self, policy: Dict[str, Any], endorsement_line: int):
+    def download_policy_files(self, policy: Dict[str, Any], validation_data: Dict[str, Any]):
         """Handle the SURA policy file download."""
         try:
-            e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
-            if ramo_cod != "11":
-                policy["obs"] = "No es automovil"
-                logger.info(f"It is not an automobile, skipping policy")
-                return
 
-            self.go_to_endorsement_items()
-
-            vehicles_count = self.get_vehicles_count()
+            logger.debug(f"Validation data: {str(validation_data)}")
             page_vehicles = self.get_vehicles_data()
             policy_vehicles = policy["vehicles"]
             logger.info(f"Page vehicles: {page_vehicles}")
             logger.info(f"Policy vehicles: {policy_vehicles}")
-            logger.debug(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
 
             reconciled_vehicles = self.reconcile_vehicles(
                 page_vehicles, policy_vehicles
@@ -256,7 +248,7 @@ class SuraDownloader(BaseDownloader):
 
                 # Execute the redirect script for each vehicle
                 try:
-                    script = f"redirectPage('DetalleVehiculo.aspx', {e_id}, {vehicle_id}, false)"
+                    script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
                     self.driver.execute_script(script)
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
                     try:
@@ -276,6 +268,26 @@ class SuraDownloader(BaseDownloader):
             raise CompanyPolicyException(
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
+
+    def validate_policy(self, policy, endorsement_line):
+        e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
+        if ramo_cod != "11":
+            policy["obs"] = "No es automovil"
+            logger.info(f"It is not an automobile, skipping policy")
+            validation_data = {
+                    "valid": False
+                }
+        else:
+            validation_data = {
+                    "valid": True,
+                    "id": e_id
+                }
+
+        self.go_to_endorsement_items()
+
+        vehicles_count = self.get_vehicles_count()
+        logger.debug(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
+        return validation_data
 
     def get_mercosur_download_starter(self):
         return SuraClickDownloadStarter(

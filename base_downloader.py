@@ -139,13 +139,18 @@ class BaseDownloader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_soa_download_starter(self, policy: Dict[str, Any], endorsment_line: int):
+    def get_soa_download_starter(self):
         """Handler to start the soa file download process."""
         raise NotImplementedError()
 
     @abstractmethod
     def get_mercosur_download_starter(self, policy: Dict[str, Any], endorsment_line: int):
         """Handler to start the mercosur file download process."""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def validate_policy(self, policy, endorsement_line):
+        """Check on the website if the policy is valid"""
         raise NotImplementedError()
 
     def login(self):
@@ -251,24 +256,26 @@ class BaseDownloader(ABC):
                 logger.info(
                     f"Downloading files, policy: {policy['number']} endorsement: {i}"
                 )
+                validation_data = self.validate_policy(policy, i)
+                if validation_data["valid"]:
 
-                self.download_policy_files(policy, i)
+                    self.download_policy_files(policy, validation_data)
 
-                download_success = all(
-                    v.get("status", "") == "Ok" for v in policy["vehicles"]
-                )
+                    download_success = all(
+                        v.get("status", "") == "Ok" for v in policy["vehicles"]
+                    )
 
-                if download_success:
-                    break
+                    if download_success:
+                        break
 
-                cars_excluded = all(
-                    v.get("status", "") == "Skipped"
-                    and v.get("reason", "") in ["Excluido de la flota", "No en la web"]
-                    for v in policy["vehicles"]
-                )
+                    cars_excluded = all(
+                        v.get("status", "") == "Skipped"
+                        and v.get("reason", "") in ["Excluido de la flota", "No en la web"]
+                        for v in policy["vehicles"]
+                    )
 
-                if cars_excluded:
-                    break
+                    if cars_excluded:
+                        break
 
                 if i < count - 1:
                     self._search_for_policy(policy)
