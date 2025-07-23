@@ -138,6 +138,16 @@ class BaseDownloader(ABC):
         """Handle the actual file download process."""
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_soa_download_starter(self, policy: Dict[str, Any], endorsment_line: int):
+        """Handler to start the soa file download process."""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_mercosur_download_starter(self, policy: Dict[str, Any], endorsment_line: int):
+        """Handler to start the mercosur file download process."""
+        raise NotImplementedError()
+
     def login(self):
         """Template method for the login process."""
         self.driver.init_driver()
@@ -486,3 +496,29 @@ class BaseDownloader(ABC):
         finally:
             self.logout()
             logger.info("Logout completed")
+
+    def execute_download_starters(self, policy, vehicle, vehicle_plate):
+        starter = self.get_soa_download_starter()
+        filename = "soa.pdf"  # Certificado de SOA
+        rel_path = self.get_relative_path(policy, vehicle_plate)
+        folder = self.get_folder_path(rel_path)
+        vehicle["folder"] = folder
+        self.download_file_from_starter(
+                        starter, FilenameRenameStrategy(folder, filename)
+                    )
+        vehicle["soa"] = f"{rel_path}/{filename}"
+
+        vehicle["mercosur"] = ""
+        if not policy.get("soa_only", False):
+            starter = self.get_mercosur_download_starter()
+            filename = "mercosur.pdf"  # Certificado de Mercosur
+            try:
+                self.download_file_from_starter(
+                                starter, FilenameRenameStrategy(folder, filename)
+                            )
+                vehicle["mercosur"] = f"{rel_path}/{filename}"
+            except TimeoutError:
+                pass
+
+        self.driver.back()
+        vehicle["status"] = "Ok"

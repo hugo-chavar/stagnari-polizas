@@ -258,41 +258,7 @@ class SuraDownloader(BaseDownloader):
                 try:
                     script = f"redirectPage('DetalleVehiculo.aspx', {e_id}, {vehicle_id}, false)"
                     self.driver.execute_script(script)
-                    starter = SuraClickDownloadStarter(
-                        driver=self.driver,
-                        locator=Locator(
-                            LocatorType.XPATH, "//a[contains(text(),'certificado SOA')]"
-                        ),
-                    )
-                    filename = "soa.pdf"  # Certificado de SOA
-                    rel_path = self.get_relative_path(policy, vehicle_plate)
-                    folder = self.get_folder_path(rel_path)
-                    vehicle["folder"] = folder
-                    self.download_file_from_starter(
-                        starter, FilenameRenameStrategy(folder, filename)
-                    )
-                    vehicle["soa"] = f"{rel_path}/{filename}"
-
-                    vehicle["mercosur"] = ""
-                    if not policy.get("soa_only", False):
-                        starter = SuraClickDownloadStarter(
-                            driver=self.driver,
-                            locator=Locator(
-                                LocatorType.XPATH,
-                                "//a[contains(text(),'tarjeta verde')]",
-                            ),
-                        )
-                        filename = "mercosur.pdf"  # Certificado de Mercosur
-                        try:
-                            self.download_file_from_starter(
-                                starter, FilenameRenameStrategy(folder, filename)
-                            )
-                            vehicle["mercosur"] = f"{rel_path}/{filename}"
-                        except TimeoutError:
-                            pass
-
-                    self.driver.back()
-                    vehicle["status"] = "Ok"
+                    self.execute_download_starters(policy, vehicle, vehicle_plate)
                     try:
                         self.driver.wait_for_clickable(
                             Locator(LocatorType.CSS, "input#cmdExportarFlota")
@@ -311,6 +277,24 @@ class SuraDownloader(BaseDownloader):
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
 
+    def get_mercosur_download_starter(self):
+        return SuraClickDownloadStarter(
+                            driver=self.driver,
+                            locator=Locator(
+                                LocatorType.XPATH,
+                                "//a[contains(text(),'tarjeta verde')]",
+                            ),
+                        )
+
+    def get_soa_download_starter(self):
+        return SuraClickDownloadStarter(
+                        driver=self.driver,
+                        locator=Locator(
+                            LocatorType.XPATH, 
+                            "//a[contains(text(),'certificado SOA')]"
+                        ),
+                    )
+        
     def go_to_endorsement_items(self):
         items_tab_locator = Locator(LocatorType.CSS, f"a[href='#Items']")
 
