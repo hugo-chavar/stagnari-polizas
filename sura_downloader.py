@@ -241,15 +241,12 @@ class SuraDownloader(BaseDownloader):
             for vehicle in reconciled_vehicles:
                 if vehicle["status"] != "Pending":
                     continue
-                vehicle_id = vehicle["page_id"]
 
                 vehicle_plate = vehicle["license_plate"]
-                logger.info(f"Processing vehicle {vehicle_plate} with ID {vehicle_id}")
 
-                # Execute the redirect script for each vehicle
                 try:
-                    script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
-                    self.driver.execute_script(script)
+
+                    self.go_to_download_page(vehicle)
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
                     try:
                         self.driver.wait_for_clickable(
@@ -268,6 +265,13 @@ class SuraDownloader(BaseDownloader):
             raise CompanyPolicyException(
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
+
+    def go_to_download_page(self, vehicle, validation_data):
+                # Execute the redirect script for the vehicle
+                vehicle_id = vehicle["page_id"]
+                logger.info(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
+                script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
+                self.driver.execute_script(script)
 
     def validate_policy(self, policy, endorsement_line):
         e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
