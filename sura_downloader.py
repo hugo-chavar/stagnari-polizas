@@ -221,9 +221,8 @@ class SuraDownloader(BaseDownloader):
         return reconciled_vehicles
 
     def download_policy_files(self, policy: Dict[str, Any], validation_data: Dict[str, Any]):
-        """Handle the SURA policy file download."""
+        """Handle the policy file download."""
         try:
-
             logger.debug(f"Validation data: {str(validation_data)}")
             page_vehicles = self.get_vehicles_data()
             policy_vehicles = policy["vehicles"]
@@ -238,23 +237,17 @@ class SuraDownloader(BaseDownloader):
             if policy["downloaded"]:
                 logger.info("ALREADY DOWNLOADED")
                 return
-            for vehicle in reconciled_vehicles:
+            for index, vehicle in enumerate(reconciled_vehicles):
                 if vehicle["status"] != "Pending":
                     continue
 
                 vehicle_plate = vehicle["license_plate"]
 
                 try:
-
-                    self.go_to_download_page(vehicle)
+                    self.go_to_vehicle_download_page(vehicle, validation_data)
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
-                    try:
-                        self.driver.wait_for_clickable(
-                            Locator(LocatorType.CSS, "input#cmdExportarFlota")
-                        )
-                    except:
-                        pass
-
+                    if index < len(reconciled_vehicles) - 1:
+                        self.prepare_next_vehicle_search()
                 except Exception as e:
                     logger.error(f"Error processing vehicle {vehicle_plate}: {str(e)}")
                     vehicle["status"] = "Error"
@@ -266,7 +259,16 @@ class SuraDownloader(BaseDownloader):
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
 
-    def go_to_download_page(self, vehicle, validation_data):
+    def prepare_next_vehicle_search(self):
+        try:
+            self.driver.back()
+            self.driver.wait_for_clickable(
+                                Locator(LocatorType.CSS, "input#cmdExportarFlota")
+                            )
+        except:
+            pass
+
+    def go_to_vehicle_download_page(self, vehicle, validation_data):
                 # Execute the redirect script for the vehicle
                 vehicle_id = vehicle["page_id"]
                 logger.info(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")

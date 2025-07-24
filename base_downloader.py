@@ -527,5 +527,4 @@ class BaseDownloader(ABC):
             except TimeoutError:
                 pass
 
-        self.driver.back()
         vehicle["status"] = "Ok"
