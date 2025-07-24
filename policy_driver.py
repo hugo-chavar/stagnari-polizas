@@ -132,7 +132,7 @@ class PolicyDriver:
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
-        self.driver = self.driver_creator.create()
+        self.driver = self.driver_creator.create(chrome_options)
         self.driver.implicitly_wait(10)
         logger.info("WebDriver instance created")
 
