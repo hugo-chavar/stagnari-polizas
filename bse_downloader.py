@@ -253,45 +253,6 @@ class BseDownloader(BaseDownloader):
 
         return reconciled_vehicles
 
-    def download_policy_files(self, policy: Dict[str, Any], validation_data: Dict[str, Any]):
-        """Handle the policy file download."""
-        try:
-            logger.debug(f"Validation data: {str(validation_data)}")
-            page_vehicles = self.get_vehicles_data()
-            policy_vehicles = policy["vehicles"]
-            logger.info(f"Page vehicles: {page_vehicles}")
-            logger.info(f"Policy vehicles: {policy_vehicles}")
-
-            reconciled_vehicles = self.reconcile_vehicles(
-                page_vehicles, policy_vehicles
-            )
-            logger.info(f"Reconciled vehicles: {reconciled_vehicles}")
-            self.is_downloaded(policy)
-            if policy["downloaded"]:
-                logger.info("ALREADY DOWNLOADED")
-                return
-            for index, vehicle in enumerate(reconciled_vehicles):
-                if vehicle["status"] != "Pending":
-                    continue
-
-                vehicle_plate = vehicle["license_plate"]
-
-                try:
-                    self.go_to_vehicle_download_page(vehicle, validation_data)
-                    self.execute_download_starters(policy, vehicle, vehicle_plate)
-                    if index < len(reconciled_vehicles) - 1:
-                        self.prepare_next_vehicle_search()
-                except Exception as e:
-                    logger.error(f"Error processing vehicle {vehicle_plate}: {str(e)}")
-                    vehicle["status"] = "Error"
-                    vehicle["reason"] = e.reason if hasattr(e, "reason") else str(e)
-            policy["vehicles"] = reconciled_vehicles
-        except Exception as e:
-            logger.error(f"Error downloading policy files: {str(e)}")
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Policy download failed: {str(e)}"
-            )
-
     def go_to_vehicle_download_page(self, vehicle, validation_data):
         logger.info(f"Go to download page of vehicle {vehicle["license_plate"]}")
         self.driver.click(btn_print_lctor)
