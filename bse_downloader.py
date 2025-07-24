@@ -280,9 +280,6 @@ class BseDownloader(BaseDownloader):
                 
                 self.go_to_download_page()
                 
-                for locator in other_docs_checkbox_locators:
-                    self.driver.set_checkbox_state(locator, False)
-                
                 try:
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
 
@@ -298,8 +295,14 @@ class BseDownloader(BaseDownloader):
             )
 
     def go_to_download_page(self):
-        # TODO: implement
-        pass
+        self.driver.click(btn_print_lctor)
+        logger.debug("Print button clicked, waiting for refresh")
+
+        self.driver.wait_for_element(policy_checkbox_lctor)
+        logger.debug("Page has been refreshed, checkbox are visible")
+        
+        for locator in other_docs_checkbox_locators:
+            self.driver.set_checkbox_state(locator, False)
 
     def validate_policy(self, policy, endorsement_line):
         validation_data = {
