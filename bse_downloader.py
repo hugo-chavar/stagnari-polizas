@@ -276,11 +276,9 @@ class BseDownloader(BaseDownloader):
                     continue
 
                 vehicle_plate = vehicle["license_plate"]
-                logger.info(f"Processing vehicle {vehicle_plate}")
-                
-                self.go_to_download_page()
                 
                 try:
+                    self.go_to_download_page(vehicle, validation_data)
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
 
                 except Exception as e:
@@ -294,7 +292,8 @@ class BseDownloader(BaseDownloader):
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
 
-    def go_to_download_page(self):
+    def go_to_download_page(self, vehicle, validation_data):
+        logger.info(f"Go to download page of vehicle {vehicle["license_plate"]}")
         self.driver.click(btn_print_lctor)
         logger.debug("Print button clicked, waiting for refresh")
 
