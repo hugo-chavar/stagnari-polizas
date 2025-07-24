@@ -25,9 +25,9 @@ other_docs_checkbox_locators = [
     for i in range(4)
 ]
 
-other_docs_checkbox_locators.append(
-    Locator(LocatorType.ID, tab_imprimir_poliza + 'checkPoliza')
-)
+policy_checkbox_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'checkPoliza')
+
+other_docs_checkbox_locators.append(policy_checkbox_lctor)
 
 cert_checkbox_locators = [
     Locator(LocatorType.ID, f"{tab_imprimir_poliza}j_id_2o:{i}:chkCert")
@@ -139,12 +139,16 @@ class BseDownloader(BaseDownloader):
         """Execute the policy search operation."""
         try:
             logger.info("Searching for policy in BSE system")
+            old_el = self.driver.find_element(policy_row_lctor)
 
             # Click the search button
             self.driver.click(btn_search_lctor)
-            logger.debug("Search button clicked, waiting for results")
+            logger.debug("Search button clicked, waiting for page to become stale")
+            self.driver.wait_for_staleness(old_el)
+            logger.debug("Page has became stale, waiting for refresh")
 
-            self.wait_clickable(btn_search_lctor)
+            self.driver.wait_for_element(policy_row_lctor)
+            logger.debug("Page has been refreshed, waiting for results")
 
         except Exception as e:
             raise CompanyPolicyException(
@@ -272,12 +276,13 @@ class BseDownloader(BaseDownloader):
                     continue
 
                 vehicle_plate = vehicle["license_plate"]
+                logger.info(f"Processing vehicle {vehicle_plate}")
+                
+                self.go_to_download_page()
                 
                 for locator in other_docs_checkbox_locators:
                     self.driver.set_checkbox_state(locator, False)
                 
-                logger.info(f"Processing vehicle {vehicle_plate}")
-
                 try:
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
 
@@ -292,6 +297,10 @@ class BseDownloader(BaseDownloader):
                 company=self.name(), reason=f"Policy download failed: {str(e)}"
             )
 
+    def go_to_download_page(self):
+        # TODO: implement
+        pass
+
     def validate_policy(self, policy, endorsement_line):
         validation_data = {
             "valid": False
@@ -301,14 +310,18 @@ class BseDownloader(BaseDownloader):
             policy["obs"] = policy_status
             logger.info(f"Policy status: {policy_status}")
 
+        logger.debug("Expanding policy details")
         self.expand_policy_details()
+        logger.debug("Policy details expanded")
         
         policy_type = self.get_policy_type()
+        logger.debug(f"Policy type: {policy_type}")
         if policy_type in ["ANULADA", "VENCIDA"]:
             policy["obs"] = "No es automóvil"
-            logger.info(f"Policy type: {policy_type}")
             
         validation_data["valid"] = True
+        logger.debug("Validation finished")
+        return validation_data
         
     def get_download_starter(self):
         lctor = Locator(

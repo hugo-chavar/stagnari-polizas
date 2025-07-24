@@ -254,6 +254,13 @@ class PolicyDriver:
         except NoSuchElementException:
             raise ElementNotFoundException(str(locator))
 
+    def wait_for_staleness(self, element, timeout=20):
+        try:
+            wait = WebDriverWait(self.driver, timeout)
+            return wait.until(EC.staleness_of(element))
+        except TimeoutException:
+            raise TimeoutError(f"Waiting for element to become stale {element}")
+        
     def click(self, locator: Locator):
         """Click on the specified element."""
         attempts = 0
