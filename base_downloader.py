@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from typing import List, Dict, Any
 from pathlib import Path
 from pdf_utils import is_valid_pdf
+from policy_driver import PolicyDriver
 
 load_dotenv()
 
@@ -81,7 +82,7 @@ class ScriptDownloadStarter(DownloadStarter):
 class BaseDownloader(ABC):
     """Abstract base class for insurance policy downloaders."""
 
-    def __init__(self, driver):
+    def __init__(self, driver: PolicyDriver):
         self.driver = driver
         self.logged_in = False
 

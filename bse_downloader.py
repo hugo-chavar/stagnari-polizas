@@ -16,7 +16,8 @@ tab_imprimir_poliza = view_name + 'frmPdf:tabPnlImprimirPoliza:'
 
 btn_search_lctor = Locator(LocatorType.ID, tab_result + "btnBuscar")
 arrow_down_lctor = Locator(LocatorType.ID, tab_result + '0:j_id_6r')
-btn_print_lctor = Locator(LocatorType.ID, tab_result + '0:j_id_8p')
+btn_print_lctor = Locator(LocatorType.ID, tab_result + '0:j_id_8p') 
+select_cert_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + "certificado") 
 btn_view_report_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'btnValidar')
 btn_dwnld_policy_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'j_id_2v')
 
@@ -36,6 +37,11 @@ cert_checkbox_locators = [
 
 policy_row_lctor = Locator(LocatorType.CSS, "tr.ui-widget-content")
 policy_row_status_lctor = Locator(LocatorType.XPATH, ".//td[contains(@class, 'text-right')][.//div[contains(@class, 'filtroResponsivo')]]")
+
+download_starter_lctor = Locator(
+            LocatorType.ID,
+            tab_imprimir_poliza + 'j_id_2v',
+        )
 
 class BseClickDownloadStarter(ClickDownloadStarter):
     def __init__(self, driver, locator):
@@ -139,15 +145,11 @@ class BseDownloader(BaseDownloader):
         """Execute the policy search operation."""
         try:
             logger.info("Searching for policy in BSE system")
-            old_el = self.driver.find_element(policy_row_lctor)
+            self.driver.click_wait_for_stale(
+                staleable_lctor=policy_row_lctor,
+                btn_lctor=btn_search_lctor
+            )
 
-            # Click the search button
-            self.driver.click(btn_search_lctor)
-            logger.debug("Search button clicked, waiting for page to become stale")
-            self.driver.wait_for_staleness(old_el)
-            logger.debug("Page has became stale, waiting for refresh")
-
-            self.driver.wait_for_element(policy_row_lctor)
             logger.debug("Page has been refreshed, waiting for results")
 
         except Exception as e:
@@ -161,33 +163,34 @@ class BseDownloader(BaseDownloader):
 
     def get_vehicles_data(self) -> list[dict]:
         try:
-            second_column = self.driver.find_element(
-                Locator(LocatorType.CSS, "div.column.second-col")
+            expanded_content_el = self.driver.find_element(
+                Locator(LocatorType.CSS, "tr.ui-expanded-row-content")
             )
-            items = self.driver.find_elements(
-                Locator(LocatorType.CSS, "div > div"),
-                context=second_column
+            second_col_el = self.driver.find_element(
+                Locator(LocatorType.CSS, "div.column.second-col"),
+                context=expanded_content_el
             )
-            data = {}
-            for item in items:
-                try:
-                    label = self.driver.find_element(
-                        Locator(LocatorType.CSS, "label"),
-                        context=item
-                    ).text.strip()
-                    value = self.driver.find_element(
-                        Locator(LocatorType.CSS, "div.desc"),
-                        context=item
-                    ).text.strip()
-                    data[label] = value
-                except:
-                    continue
-
+            brand_el = self.driver.find_elements(
+                Locator(LocatorType.XPATH, ".//div[./label[contains(text(), 'Marca')]]/div[@class='desc']"),
+                context=second_col_el
+            )
+            model_el = self.driver.find_elements(
+                Locator(LocatorType.XPATH, ".//div[./label[contains(text(), 'Modelo')]]/div[@class='desc']"),
+                context=second_col_el
+            )
+            license_plate_el = self.driver.find_elements(
+                Locator(LocatorType.XPATH, ".//div[./label[contains(text(), 'Matrícula')]]/div[@class='desc']"),
+                context=second_col_el
+            )
             
+            brand = brand_el[0].text.strip() if len(brand_el) > 0 else None
+            model = model_el[0].text.strip() if len(model_el) > 0 else None
+            license_plate = license_plate_el[0].text.strip() if len(license_plate_el) > 0 else ""
+    
             return [{
-                "Marca": data.get('Marca', None),
-                "Modelo": data.get('Modelo', None),
-                "Matrícula": data.get('Matrícula', ""),
+                "Marca": brand,
+                "Modelo": model,
+                "Matrícula": license_plate,
             }]
         except Exception as e:
             logger.error(f"Error extracting vehicles data: {str(e)}")
@@ -253,16 +256,37 @@ class BseDownloader(BaseDownloader):
 
         return reconciled_vehicles
 
+    def prepare_next_vehicle_search(self):
+        pass
+
     def go_to_vehicle_download_page(self, vehicle, validation_data):
         logger.info(f"Go to download page of vehicle {vehicle["license_plate"]}")
         self.driver.click(btn_print_lctor)
         logger.debug("Print button clicked, waiting for refresh")
+        old_el = self.driver.find_element(btn_view_report_lctor)
 
+        self.driver.set_select_value(select_cert_lctor, value='1')
+        logger.debug(f"Select changed, waiting for {btn_view_report_lctor} to become stale")
+        self.driver.wait_for_staleness(old_el, desc=str(btn_view_report_lctor))
+        logger.debug("Page has became stale, waiting for refresh")
+
+        # self.driver.wait_for_element(btn_view_report_lctor)
+        
+        self.driver.click(btn_view_report_lctor)
         self.driver.wait_for_element(policy_checkbox_lctor)
         logger.debug("Page has been refreshed, checkbox are visible")
         
-        for locator in other_docs_checkbox_locators:
+        for index, locator in enumerate(other_docs_checkbox_locators):
+            if index < len(other_docs_checkbox_locators) - 1:
+                next_lctor = other_docs_checkbox_locators[index + 1]
+            else:
+                next_lctor = cert_checkbox_locators[0]
+            old_next = self.driver.wait_for_element(next_lctor)
             self.driver.set_checkbox_state(locator, False)
+            logger.debug(f"Waiting for {next_lctor} to become stale")
+            self.driver.wait_for_staleness(old_next, desc=str(next_lctor))
+            self.driver.wait_for_element(next_lctor)
+                
 
     def validate_policy(self, policy, endorsement_line):
         validation_data = {
@@ -279,6 +303,7 @@ class BseDownloader(BaseDownloader):
         
         policy_type = self.get_policy_type()
         logger.debug(f"Policy type: {policy_type}")
+        # TODO: Fix this
         if policy_type in ["ANULADA", "VENCIDA"]:
             policy["obs"] = "No es automóvil"
             
@@ -287,27 +312,31 @@ class BseDownloader(BaseDownloader):
         return validation_data
         
     def get_download_starter(self):
-        lctor = Locator(
-                    LocatorType.ID,
-                    tab_imprimir_poliza + 'j_id_2v',
-                )
 
         return BseClickDownloadStarter(
                             driver=self.driver,
-                            locator=lctor,
+                            locator=download_starter_lctor,
                         )
 
     def get_soa_download_starter(self):
         checkbox_locator = cert_checkbox_locators[0]
+        return self.wait_for_download_starter(checkbox_locator)
+
+    def wait_for_download_starter(self, checkbox_locator):
+        old_next = self.driver.wait_for_element(download_starter_lctor)
         self.driver.set_checkbox_state(checkbox_locator, True)
+        logger.debug(f"Checkbox changed, waiting for {download_starter_lctor} to become stale")
+        self.driver.wait_for_staleness(old_next, desc=str(download_starter_lctor))
+        self.driver.wait_for_element(download_starter_lctor)
+        
         return self.get_download_starter()
     
     def get_mercosur_download_starter(self):
         checkbox_locator = cert_checkbox_locators[0]
+        old_next = self.driver.wait_for_element(cert_checkbox_locators[1])
         self.driver.set_checkbox_state(checkbox_locator, False)
-        checkbox_locator = cert_checkbox_locators[1]
-        self.driver.set_checkbox_state(checkbox_locator, True)
-        return self.get_download_starter()
+        self.driver.wait_for_staleness(old_next, desc=str(cert_checkbox_locators[1]))
+        return self.wait_for_download_starter(cert_checkbox_locators[1])
 
     def expand_policy_details(self):
 

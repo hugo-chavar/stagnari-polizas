@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -205,18 +206,21 @@ class PolicyDriver:
         """Wait for an element to be present and visible."""
         try:
             wait = WebDriverWait(self.driver, timeout)
-            return wait.until(EC.visibility_of_element_located(locator.to_selenium()))
+            logger.debug(f"Waiting for element {locator}.")
+            el = wait.until(EC.visibility_of_element_located(locator.to_selenium()))
+            logger.debug(f"Element found {locator}.")
+            return el
         except TimeoutException:
-            # self._take_debug_screenshot(f"timeout_waiting_for_{locator.value}")
+            self._take_debug_screenshot(f"timeout_waiting_for_{locator.value}")
             raise TimeoutError(
-                f"Waiting for element {locator.value}. Screenshot saved."
+                f"Waiting for element {locator}. Screenshot saved."
             )
         except NoSuchElementException:
             # self._take_debug_screenshot(f"element_not_found_{locator.value}")
-            raise ElementNotFoundException(locator.value)
+            raise ElementNotFoundException(str(locator))
         except Exception as e:
             # self._take_debug_screenshot(f"unexpected_error_{locator.value}")
-            raise DriverException(f"Unexpected error waiting for element: {str(e)}")
+            raise DriverException(f"Unexpected error waiting for element {locator}: {str(e)}")
 
     def wait_for_invisibility(self, locator: Locator, timeout=10, poll_frequency=0.2):
         """Wait for an element to become invisible or not present in the DOM.
@@ -254,31 +258,68 @@ class PolicyDriver:
         except NoSuchElementException:
             raise ElementNotFoundException(str(locator))
 
-    def wait_for_staleness(self, element, timeout=20):
+    def wait_for_staleness(self, element, desc="", timeout=20):
         try:
             wait = WebDriverWait(self.driver, timeout)
             return wait.until(EC.staleness_of(element))
         except TimeoutException:
-            raise TimeoutError(f"Waiting for element to become stale {element}")
+            raise TimeoutError(f"Waiting for element to become stale {desc}")
+
+    def set_select_value(self, select_lctor, value):
+        """
+cert = wait.until(EC.presence_of_element_located((By.ID, tab_imprimir_poliza + "certificado")))
+cert_value = Select(cert)
+cert_value.select_by_value('1')
+        """
         
+        try:
+            logger.debug(f"Waiting selector {select_lctor}")
+            sel_cert_element = self.wait_for_element(select_lctor)
+            logger.debug(f"Selector found {select_lctor}")
+            Select(sel_cert_element).select_by_value(value)
+            logger.debug(f"Selector value changed {select_lctor} new value {value}")
+        except Exception as e:
+            raise DriverException(f"Can not set value {value} to {select_lctor}. Error: {e}")
+
+
     def click(self, locator: Locator):
         """Click on the specified element."""
         attempts = 0
         max_attempts = 3
         try:
+            logger.debug(f"Wait clickable {locator}. Attempt: {attempts}")
             element = self.wait_for_clickable(locator)
+            logger.debug(f"Clickable FOUND. Performing click {locator}")
             element.click()
+            logger.debug(f"Click finished {locator}")
         except ElementClickInterceptedException:
             # Retry clicking if intercepted
+            logger.debug(f"Click intercepted {locator}. Retry: {attempts}")
             while attempts < max_attempts:
                 try:
                     time.sleep(0.5)
+                    logger.debug(f"Retry. Wait clickable {locator}. Attempt: {attempts}")
                     element = self.wait_for_clickable(locator)
+                    logger.debug(f"Retry. Clickable FOUND. Performing click {locator}")
                     element.click()
+                    logger.debug(f"Retry. Click finished {locator}")
                     return
                 except ElementClickInterceptedException:
                     attempts += 1
             raise ElementNotInteractableError(str(locator))
+
+    def click_wait_for_stale(self, staleable_lctor, btn_lctor):
+            logger.debug(f"Find element to become stale: {staleable_lctor}")
+            old_el = self.find_element(staleable_lctor)
+            logger.debug(f"Found element to become stale: {staleable_lctor}")
+
+            self.click(btn_lctor)
+            logger.debug(f"{btn_lctor} clicked, waiting for {staleable_lctor} to become stale")
+            self.wait_for_staleness(old_el, desc=str(staleable_lctor))
+            logger.debug(f"{staleable_lctor} has became stale, waiting for refresh")
+
+            self.wait_for_element(staleable_lctor)
+            logger.debug(f"{staleable_lctor} has refreshed")
 
     def send_keys(self, locator: Locator, text: str):
         """Send text to the specified element."""

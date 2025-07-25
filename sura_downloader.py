@@ -234,7 +234,9 @@ class SuraDownloader(BaseDownloader):
                 vehicle_id = vehicle["page_id"]
                 logger.info(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
                 script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
+                logger.debug(f"Executing script: {script}")
                 self.driver.execute_script(script)
+                logger.debug("Script finished")
 
     def validate_policy(self, policy, endorsement_line):
         e_id, ramo_cod = self.select_endorsement_line(endorsement_line)
