@@ -569,7 +569,7 @@ class BaseDownloader(ABC):
                     if index < len(reconciled_vehicles) - 1:
                         self.prepare_next_vehicle_search()
                 except Exception as e:
-                    logger.error(f"Error processing vehicle {vehicle_plate}: {str(e)}")
+                    logger.error(f"Error processing vehicle {vehicle_plate}: ({type(e).__name__}) {str(e)}")
                     vehicle["status"] = "Error"
                     vehicle["reason"] = e.reason if hasattr(e, "reason") else str(e)
             policy["vehicles"] = reconciled_vehicles
