@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Any
-from policy_driver import Locator, LocatorType, DriverException
+from policy_driver import Locator, LocatorType, DriverException, TimeoutError
 from base_downloader import (
     BaseDownloader,
     ClickDownloadStarter,
@@ -48,17 +48,19 @@ class BseClickDownloadStarter(ClickDownloadStarter):
         super().__init__(driver, locator)
 
     def verify_download_in_progress(self, filename: str):
-        try:
-            locator = Locator(LocatorType.TAG, "pre")
-            ele = self.driver.wait_for_element(locator, timeout=5)
-            error_message = ele.text.strip()
-            logger.error(f"Download BSE error: {error_message}")
-            raise CompanyPolicyException(
-                company="BSE",
-                reason=f"Archivo {filename} no disponible para descargar",
-            )
-        except DriverException as e:
-            pass
+        # TODO: implement this
+        pass
+        # try:
+        #     locator = Locator(LocatorType.TAG, "pre")
+        #     ele = self.driver.wait_for_element(locator, timeout=5)
+        #     error_message = ele.text.strip()
+        #     logger.error(f"Download BSE error: {error_message}")
+        #     raise CompanyPolicyException(
+        #         company="BSE",
+        #         reason=f"Archivo {filename} no disponible para descargar",
+        #     )
+        # except DriverException as e:
+        #     pass
 
 
 class BseDownloader(BaseDownloader):
@@ -282,9 +284,9 @@ class BseDownloader(BaseDownloader):
             else:
                 next_lctor = cert_checkbox_locators[0]
             old_next = self.driver.wait_for_element(next_lctor)
-            self.driver.set_checkbox_state(locator, False)
-            logger.debug(f"Waiting for {next_lctor} to become stale")
-            self.driver.wait_for_staleness(old_next, desc=str(next_lctor))
+            if self.driver.set_checkbox_state(locator, False):
+                logger.debug(f"Waiting for {next_lctor} to become stale")
+                self.driver.wait_for_staleness(old_next, desc=str(next_lctor))
             self.driver.wait_for_element(next_lctor)
                 
 
@@ -323,19 +325,29 @@ class BseDownloader(BaseDownloader):
         return self.wait_for_download_starter(checkbox_locator)
 
     def wait_for_download_starter(self, checkbox_locator):
+        logger.info(f"Waiting for {download_starter_lctor}")
         old_next = self.driver.wait_for_element(download_starter_lctor)
-        self.driver.set_checkbox_state(checkbox_locator, True)
-        logger.debug(f"Checkbox changed, waiting for {download_starter_lctor} to become stale")
-        self.driver.wait_for_staleness(old_next, desc=str(download_starter_lctor))
-        self.driver.wait_for_element(download_starter_lctor)
+        if self.driver.set_checkbox_state(checkbox_locator, True):
+            logger.debug(f"Checkbox changed, waiting for {download_starter_lctor} to become stale")
+            self.driver.wait_for_staleness(old_next, desc=str(download_starter_lctor))
+            logger.debug(f"Waiting for {download_starter_lctor}")
+            self.driver.wait_for_element(download_starter_lctor)
         
         return self.get_download_starter()
     
     def get_mercosur_download_starter(self):
         checkbox_locator = cert_checkbox_locators[0]
+        logger.info(f"Waiting for {cert_checkbox_locators[1]}")
         old_next = self.driver.wait_for_element(cert_checkbox_locators[1])
+        logger.info(f"Old1 {cert_checkbox_locators[1]} {old_next}")
         self.driver.set_checkbox_state(checkbox_locator, False)
-        self.driver.wait_for_staleness(old_next, desc=str(cert_checkbox_locators[1]))
+        # if self.driver.set_checkbox_state(checkbox_locator, False):
+        #     logger.info(f"Old2 {cert_checkbox_locators[1]} {old_next}")
+        #     try:
+        #         self.driver.wait_for_staleness(old_next, desc=str(cert_checkbox_locators[1]))
+        #     except TimeoutError:
+        #         logger.info(f"Timeout staleness check {cert_checkbox_locators[1]} {old_next}")
+        #         pass
         return self.wait_for_download_starter(cert_checkbox_locators[1])
 
     def expand_policy_details(self):

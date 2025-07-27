@@ -258,9 +258,10 @@ class PolicyDriver:
         except NoSuchElementException:
             raise ElementNotFoundException(str(locator))
 
-    def wait_for_staleness(self, element, desc="", timeout=20):
+    def wait_for_staleness(self, element, desc="", timeout=2):
         try:
             wait = WebDriverWait(self.driver, timeout)
+            logger.debug(f"Wait for staleness of {element} for {timeout} seconds.")
             return wait.until(EC.staleness_of(element))
         except TimeoutException:
             raise TimeoutError(f"Waiting for element to become stale {desc}")
@@ -509,3 +510,5 @@ cert_value.select_by_value('1')
         current_state = element.is_selected()
         if current_state != desired_state:
             element.click()
+            return True
+        return False
