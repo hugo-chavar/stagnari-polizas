@@ -341,18 +341,20 @@ class BaseDownloader(ABC):
             rel_path = self.get_relative_path(policy, license_plate)
             folder = self.get_folder_path(rel_path)
             soa_file_is_valid, _ = is_valid_pdf(folder, "soa.pdf")
+            if soa_file_is_valid:
+                vehicle["folder"] = folder
+                vehicle["soa"] = f"{rel_path}/soa.pdf"
             if soa_only:
                 vehicle["files_are_valid"] = soa_file_is_valid
             else:
                 mercosur_file_is_valid, _ = is_valid_pdf(folder, "mercosur.pdf")
+                if mercosur_file_is_valid:
+                    vehicle["mercosur"] = f"{rel_path}/mercosur.pdf"
                 vehicle["files_are_valid"] = (
                     soa_file_is_valid and mercosur_file_is_valid
                 )
             if vehicle["files_are_valid"]:
-                vehicle["folder"] = folder
-                vehicle["soa"] = f"{rel_path}/soa.pdf"
                 vehicle["status"] = "Ok"
-                vehicle["mercosur"] = f"{rel_path}/mercosur.pdf" if not soa_only else ""
         policy["downloaded"] = all(
             vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
         )
@@ -516,27 +518,29 @@ class BaseDownloader(ABC):
             logger.info("Logout completed")
 
     def execute_download_starters(self, policy, vehicle, vehicle_plate):
-        starter = self.get_soa_download_starter()
-        filename = "soa.pdf"  # Certificado de SOA
-        rel_path = self.get_relative_path(policy, vehicle_plate)
-        folder = self.get_folder_path(rel_path)
-        vehicle["folder"] = folder
-        self.download_file_from_starter(
-                        starter, FilenameRenameStrategy(folder, filename)
-                    )
-        vehicle["soa"] = f"{rel_path}/{filename}"
+        if not vehicle.get("soa"):
+            starter = self.get_soa_download_starter()
+            filename = "soa.pdf"  # Certificado de SOA
+            rel_path = self.get_relative_path(policy, vehicle_plate)
+            folder = self.get_folder_path(rel_path)
+            vehicle["folder"] = folder
+            self.download_file_from_starter(
+                            starter, FilenameRenameStrategy(folder, filename)
+                        )
+            vehicle["soa"] = f"{rel_path}/{filename}"
 
-        vehicle["mercosur"] = ""
-        if not policy.get("soa_only", False):
-            starter = self.get_mercosur_download_starter()
-            filename = "mercosur.pdf"  # Certificado de Mercosur
-            try:
-                self.download_file_from_starter(
-                                starter, FilenameRenameStrategy(folder, filename)
-                            )
-                vehicle["mercosur"] = f"{rel_path}/{filename}"
-            except TimeoutError:
-                pass
+        if not vehicle.get("mercosur"):
+            vehicle["mercosur"] = ""
+            if not policy.get("soa_only", False):
+                starter = self.get_mercosur_download_starter()
+                filename = "mercosur.pdf"  # Certificado de Mercosur
+                try:
+                    self.download_file_from_starter(
+                                    starter, FilenameRenameStrategy(folder, filename)
+                                )
+                    vehicle["mercosur"] = f"{rel_path}/{filename}"
+                except TimeoutError:
+                    pass
 
         vehicle["status"] = "Ok"
 
