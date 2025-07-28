@@ -518,11 +518,11 @@ class BaseDownloader(ABC):
             logger.info("Logout completed")
 
     def execute_download_starters(self, policy, vehicle, vehicle_plate):
+        rel_path = self.get_relative_path(policy, vehicle_plate)
+        folder = self.get_folder_path(rel_path)
         if not vehicle.get("soa"):
             starter = self.get_soa_download_starter()
             filename = "soa.pdf"  # Certificado de SOA
-            rel_path = self.get_relative_path(policy, vehicle_plate)
-            folder = self.get_folder_path(rel_path)
             vehicle["folder"] = folder
             self.download_file_from_starter(
                             starter, FilenameRenameStrategy(folder, filename)
