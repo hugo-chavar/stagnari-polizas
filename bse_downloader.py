@@ -35,6 +35,9 @@ cert_checkbox_locators = [
     for i in range(2)
 ]
 
+mercosur_cert_checkbox_locator = cert_checkbox_locators[0]
+soa_cert_checkbox_locator = cert_checkbox_locators[1]
+
 policy_row_lctor = Locator(LocatorType.CSS, "tr.ui-widget-content")
 policy_row_status_lctor = Locator(LocatorType.XPATH, ".//td[contains(@class, 'text-right')][.//div[contains(@class, 'filtroResponsivo')]]")
 
@@ -282,7 +285,7 @@ class BseDownloader(BaseDownloader):
             if index < len(other_docs_checkbox_locators) - 1:
                 next_lctor = other_docs_checkbox_locators[index + 1]
             else:
-                next_lctor = cert_checkbox_locators[0]
+                next_lctor = mercosur_cert_checkbox_locator
             old_next = self.driver.wait_for_element(next_lctor)
             if self.driver.set_checkbox_state(locator, False):
                 logger.debug(f"Waiting for {next_lctor} to become stale")
@@ -321,34 +324,47 @@ class BseDownloader(BaseDownloader):
                         )
 
     def get_soa_download_starter(self):
-        checkbox_locator = cert_checkbox_locators[0]
-        return self.wait_for_download_starter(checkbox_locator)
+        return self.wait_for_download_starter(
+            on_checkbox_lctor=soa_cert_checkbox_locator,
+            off_checkbox_lctor=mercosur_cert_checkbox_locator
+        )
 
-    def wait_for_download_starter(self, checkbox_locator):
+    def wait_for_download_starter(self, on_checkbox_lctor, off_checkbox_lctor):
+        logger.info(f"Waiting for {off_checkbox_lctor}")
+        old_next = self.driver.wait_for_element(off_checkbox_lctor)
+        logger.info(f"Old {off_checkbox_lctor} {old_next}")
+        self.driver.set_checkbox_state(off_checkbox_lctor, False)
         logger.info(f"Waiting for {download_starter_lctor}")
         old_next = self.driver.wait_for_element(download_starter_lctor)
-        if self.driver.set_checkbox_state(checkbox_locator, True):
+        if self.driver.set_checkbox_state(on_checkbox_lctor, True):
             logger.debug(f"Checkbox changed, waiting for {download_starter_lctor} to become stale")
-            self.driver.wait_for_staleness(old_next, desc=str(download_starter_lctor))
-            logger.debug(f"Waiting for {download_starter_lctor}")
-            self.driver.wait_for_element(download_starter_lctor)
+            try:
+                self.driver.wait_for_staleness(old_next, desc=str(download_starter_lctor))
+                logger.debug(f"Waiting for {download_starter_lctor}")
+                self.driver.wait_for_element(download_starter_lctor)
+            except TimeoutError:
+                pass
         
         return self.get_download_starter()
     
     def get_mercosur_download_starter(self):
-        checkbox_locator = cert_checkbox_locators[0]
-        logger.info(f"Waiting for {cert_checkbox_locators[1]}")
-        old_next = self.driver.wait_for_element(cert_checkbox_locators[1])
-        logger.info(f"Old1 {cert_checkbox_locators[1]} {old_next}")
-        self.driver.set_checkbox_state(checkbox_locator, False)
+        # off_checkbox_lctor = soa_cert_checkbox_locator
+        # on_checkbox_lctor = mercosur_cert_checkbox_locator
+        # logger.info(f"Waiting for {off_checkbox_lctor}")
+        # old_next = self.driver.wait_for_element(off_checkbox_lctor)
+        # logger.info(f"Old {off_checkbox_lctor} {old_next}")
+        # self.driver.set_checkbox_state(off_checkbox_lctor, False)
         # if self.driver.set_checkbox_state(checkbox_locator, False):
-        #     logger.info(f"Old2 {cert_checkbox_locators[1]} {old_next}")
+        #     logger.info(f"Old2 {off_checkbox_lctor} {old_next}")
         #     try:
-        #         self.driver.wait_for_staleness(old_next, desc=str(cert_checkbox_locators[1]))
+        #         self.driver.wait_for_staleness(old_next, desc=str(off_checkbox_lctor))
         #     except TimeoutError:
-        #         logger.info(f"Timeout staleness check {cert_checkbox_locators[1]} {old_next}")
+        #         logger.info(f"Timeout staleness check {soa_cert_checkbox_locator} {old_next}")
         #         pass
-        return self.wait_for_download_starter(cert_checkbox_locators[1])
+        return self.wait_for_download_starter(
+            on_checkbox_lctor=mercosur_cert_checkbox_locator,
+            off_checkbox_lctor=soa_cert_checkbox_locator
+        )
 
     def expand_policy_details(self):
 
