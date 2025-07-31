@@ -3,14 +3,19 @@ FROM selenium/standalone-chrome:latest
 USER root
 WORKDIR /app
 
-# Clean up duplicate apt sources
-RUN sudo rm -f /etc/apt/sources.list.d/ubuntu.sources && \
-    sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
+RUN apt-get update -o Acquire::AllowInsecureRepositories=true && \
+    apt-get install -y --allow-unauthenticated debian-archive-keyring && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+      0E98404D386FA1D9 \
+      6ED0E7B82643E131 \
+      605C66F00D6C9793 && \
+    rm -f /etc/apt/sources.list.d/ubuntu.sources && \
+    echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
+    echo "deb http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
 
 # Install system dependencies
-RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y \
     python3 \
     python3-pip \
