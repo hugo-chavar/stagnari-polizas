@@ -3,25 +3,25 @@ FROM selenium/standalone-chrome:latest
 USER root
 WORKDIR /app
 
-# First clean up existing sources and install keyring
-RUN rm -f /etc/apt/sources.list.d/* && \
-    apt-get update -o Acquire::AllowInsecureRepositories=true && \
-    apt-get install -y --allow-unauthenticated debian-archive-keyring ca-certificates
+# 1. First establish basic connectivity with temporary insecure method
+RUN echo "deb [allow-insecure=yes] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    echo "deb [allow-insecure=yes] http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
 
-# Add all required Debian keys (main + security)
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
-    0E98404D386FA1D9 \
-    6ED0E7B82643E131 \
-    605C66F00D6C9793 \
-    54404762BBB6E853 \
-    BDE6D2B9216EC7A8
+# 2. Install absolutely minimal requirements first
+RUN apt-get update -o Acquire::AllowInsecureRepositories=true && \
+    apt-get install -y --allow-unauthenticated \
+    ca-certificates \
+    gnupg \
+    wget
 
-# Configure proper Debian sources (main + updates + security)
-RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
-    echo "deb http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
+# 3. Now properly setup Debian repositories with secure method
+RUN wget -qO- https://ftp-master.debian.org/keys/archive-key-11.asc | gpg --dearmor > /usr/share/keyrings/debian-archive-keyring.gpg && \
+    wget -qO- https://ftp-master.debian.org/keys/archive-key-11-security.asc | gpg --dearmor > /usr/share/keyrings/debian-security-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
+    echo "deb [signed-by=/usr/share/keyrings/debian-security-archive-keyring.gpg] http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
 
-# Install system dependencies
+# 4. Now install all required packages
 RUN apt-get update && \
     apt-get install -y \
     python3 \
