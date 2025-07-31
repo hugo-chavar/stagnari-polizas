@@ -13,11 +13,9 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     cron \
-    libmagic1
-
-# Clean up apt cache
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    file \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set directory structure and permissions
 RUN mkdir -p /srv/shared_files /tmp/pdf /tmp/scr
