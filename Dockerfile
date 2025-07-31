@@ -3,14 +3,21 @@ FROM selenium/standalone-chrome:latest
 USER root
 WORKDIR /app
 
-RUN apt-get update -o Acquire::AllowInsecureRepositories=true && \
-    apt-get install -y --allow-unauthenticated debian-archive-keyring && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
-      0E98404D386FA1D9 \
-      6ED0E7B82643E131 \
-      605C66F00D6C9793 && \
-    rm -f /etc/apt/sources.list.d/ubuntu.sources && \
-    echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+# First clean up existing sources and install keyring
+RUN rm -f /etc/apt/sources.list.d/* && \
+    apt-get update -o Acquire::AllowInsecureRepositories=true && \
+    apt-get install -y --allow-unauthenticated debian-archive-keyring ca-certificates
+
+# Add all required Debian keys (main + security)
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+    0E98404D386FA1D9 \
+    6ED0E7B82643E131 \
+    605C66F00D6C9793 \
+    54404762BBB6E853 \
+    BDE6D2B9216EC7A8
+
+# Configure proper Debian sources (main + updates + security)
+RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
     echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
     echo "deb http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
 
