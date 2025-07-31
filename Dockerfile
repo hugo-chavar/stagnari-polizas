@@ -3,31 +3,19 @@ FROM selenium/standalone-chrome:latest
 USER root
 WORKDIR /app
 
-# 1. First establish basic connectivity with temporary insecure method
-RUN echo "deb [allow-insecure=yes] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
-    echo "deb [allow-insecure=yes] http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
+# Clean up existing sources and use ONLY Ubuntu repositories
+RUN rm -f /etc/apt/sources.list.d/* && \
+    echo "deb http://archive.ubuntu.com/ubuntu noble main universe" > /etc/apt/sources.list && \
+    echo "deb http://archive.ubuntu.com/ubuntu noble-updates main universe" >> /etc/apt/sources.list && \
+    echo "deb http://security.ubuntu.com/ubuntu noble-security main universe" >> /etc/apt/sources.list
 
-# 2. Install absolutely minimal requirements first
-RUN apt-get update -o Acquire::AllowInsecureRepositories=true && \
-    apt-get install -y --allow-unauthenticated \
-    ca-certificates \
-    gnupg \
-    wget
-
-# 3. Now properly setup Debian repositories with secure method
-RUN wget -qO- https://ftp-master.debian.org/keys/archive-key-11.asc | gpg --dearmor > /usr/share/keyrings/debian-archive-keyring.gpg && \
-    wget -qO- https://ftp-master.debian.org/keys/archive-key-11-security.asc | gpg --dearmor > /usr/share/keyrings/debian-security-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
-    echo "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
-    echo "deb [signed-by=/usr/share/keyrings/debian-security-archive-keyring.gpg] http://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
-
-# 4. Now install all required packages
+# Install system packages using Ubuntu packages
 RUN apt-get update && \
     apt-get install -y \
     python3 \
     python3-pip \
     cron \
-    file \
+    libmagic1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
