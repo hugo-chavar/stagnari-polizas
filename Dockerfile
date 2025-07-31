@@ -8,7 +8,9 @@ RUN sudo rm -f /etc/apt/sources.list.d/ubuntu.sources && \
     sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false
 
 # Install system dependencies
-RUN apt-get update && \
+RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list && \
+    apt-get update && \
     apt-get install -y \
     python3 \
     python3-pip \
