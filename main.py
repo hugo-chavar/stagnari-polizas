@@ -200,3 +200,8 @@ def send_files(
                     send_file, sender_number, mcs, "Certificado Mercosur"
                 )
         return {"response": bot_response}
+
+@app.get("/health")
+def health_check():
+    # Add critical checks here (e.g., DB, Redis, etc.)
+    return Response(status_code=200)
