@@ -8,6 +8,7 @@ google-auth
 google-auth-oauthlib
 google-auth-httplib2
 gspread
+gunicorn
 openai
 pandas
 thefuzz
@@ -16,3 +17,4 @@ requests
 python-magic
 PyPDF2
 selenium
+uvicorn
