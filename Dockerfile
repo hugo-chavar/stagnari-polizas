@@ -20,7 +20,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Set directory structure and permissions
-RUN mkdir -p /srv/shared_files /tmp/pdf /tmp/scr
+RUN mkdir -p /srv/shared_files /srv/db /tmp/pdf /tmp/scr
 
 # Install packages globally (but isolated in container)
 COPY requirements.txt .
