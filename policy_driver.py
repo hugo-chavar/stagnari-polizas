@@ -291,7 +291,8 @@ cert_value.select_by_value('1')
             logger.debug(f"Wait clickable {locator}. Attempt: {attempts}")
             element = self.wait_for_clickable(locator)
             logger.debug(f"Clickable FOUND. Performing click {locator}")
-            element.click()
+            # element.click()
+            self.driver.execute_script("arguments[0].click();", element)
             logger.debug(f"Click finished {locator}")
         except ElementClickInterceptedException:
             # Retry clicking if intercepted
