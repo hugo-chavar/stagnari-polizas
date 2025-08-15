@@ -8,7 +8,7 @@ class DriverCreator:
             "SELENIUM_HOST", "localhost"
         )
 
-        self.driver = webdriver.Remote(
+        return webdriver.Remote(
             command_executor=f"http://{selenium_host}:4444/wd/hub",
             options=chrome_options,
         )
