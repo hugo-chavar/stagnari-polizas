@@ -1,9 +1,12 @@
 import sqlite3, os
+import logging
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
 from models import Policy, Car
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -12,6 +15,7 @@ DATABASE_NAME = os.getenv("DATABASE_FILE")
 
 def init_db():
     """Initialize the database and create tables if they don't exist"""
+    logger.debug(f"Connecting to {DATABASE_NAME}")
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         # Chat history table
