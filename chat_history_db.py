@@ -1,10 +1,13 @@
-import sqlite3
+import sqlite3, os
 from dataclasses import dataclass, field
+from dotenv import load_dotenv
 from typing import List, Tuple, Optional
 from datetime import datetime, timedelta, date
 from models import Policy, Car
 
-DATABASE_NAME = "chat_history.db"
+load_dotenv()
+
+DATABASE_NAME = os.getenv("DATABASE_FILE")
 
 
 def init_db():
