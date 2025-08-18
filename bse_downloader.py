@@ -46,6 +46,21 @@ download_starter_lctor = Locator(
             tab_imprimir_poliza + 'j_id_2v',
         )
 
+
+def get_soa_cert_checkbox_locator(policy):
+    is_soa_only = policy.get("soa_only", False)
+    index = 0 if is_soa_only else 1
+    return cert_checkbox_locators[index]
+
+
+def get_mercosur_cert_checkbox_locator(policy):
+    is_soa_only = policy.get("soa_only", False)
+    if is_soa_only:
+        return None
+    
+    return cert_checkbox_locators[0]
+
+
 class BseClickDownloadStarter(ClickDownloadStarter):
     def __init__(self, driver, locator):
         super().__init__(driver, locator)
@@ -149,7 +164,7 @@ class BseDownloader(BaseDownloader):
     def search_policy(self):
         """Execute the policy search operation."""
         try:
-            logger.info("Searching for policy in BSE system")
+            logger.debug("Searching for policy in BSE system")
             self.driver.click_wait_for_stale(
                 staleable_lctor=policy_row_lctor,
                 btn_lctor=btn_search_lctor
@@ -265,7 +280,7 @@ class BseDownloader(BaseDownloader):
         pass
 
     def go_to_vehicle_download_page(self, vehicle, validation_data):
-        logger.info(f"Go to download page of vehicle {vehicle["license_plate"]}")
+        logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]}")
         self.driver.click(btn_print_lctor)
         logger.debug("Print button clicked, waiting for refresh")
         old_el = self.driver.find_element(btn_view_report_lctor)
@@ -285,7 +300,7 @@ class BseDownloader(BaseDownloader):
             if index < len(other_docs_checkbox_locators) - 1:
                 next_lctor = other_docs_checkbox_locators[index + 1]
             else:
-                next_lctor = mercosur_cert_checkbox_locator
+                next_lctor = cert_checkbox_locators[0]
             old_next = self.driver.wait_for_element(next_lctor)
             if self.driver.set_checkbox_state(locator, False):
                 logger.debug(f"Waiting for {next_lctor} to become stale")
@@ -323,18 +338,21 @@ class BseDownloader(BaseDownloader):
                             locator=download_starter_lctor,
                         )
 
-    def get_soa_download_starter(self):
+    def get_soa_download_starter(self, policy):
+        soa_cert_checkbox_locator = get_soa_cert_checkbox_locator(policy)
+        mercosur_cert_checkbox_locator = get_mercosur_cert_checkbox_locator(policy)
         return self.wait_for_download_starter(
             on_checkbox_lctor=soa_cert_checkbox_locator,
             off_checkbox_lctor=mercosur_cert_checkbox_locator
         )
 
     def wait_for_download_starter(self, on_checkbox_lctor, off_checkbox_lctor):
-        logger.info(f"Waiting for {off_checkbox_lctor}")
-        old_next = self.driver.wait_for_element(off_checkbox_lctor)
-        logger.info(f"Old {off_checkbox_lctor} {old_next}")
-        self.driver.set_checkbox_state(off_checkbox_lctor, False)
-        logger.info(f"Waiting for {download_starter_lctor}")
+        if off_checkbox_lctor is not None:
+            logger.debug(f"Waiting for {off_checkbox_lctor}")
+            old_next = self.driver.wait_for_element(off_checkbox_lctor)
+            logger.debug(f"Old {off_checkbox_lctor} {old_next}")
+            self.driver.set_checkbox_state(off_checkbox_lctor, False)
+        logger.debug(f"Waiting for {download_starter_lctor}")
         old_next = self.driver.wait_for_element(download_starter_lctor)
         if self.driver.set_checkbox_state(on_checkbox_lctor, True):
             logger.debug(f"Checkbox changed, waiting for {download_starter_lctor} to become stale")
@@ -347,20 +365,9 @@ class BseDownloader(BaseDownloader):
         
         return self.get_download_starter()
     
-    def get_mercosur_download_starter(self):
-        # off_checkbox_lctor = soa_cert_checkbox_locator
-        # on_checkbox_lctor = mercosur_cert_checkbox_locator
-        # logger.info(f"Waiting for {off_checkbox_lctor}")
-        # old_next = self.driver.wait_for_element(off_checkbox_lctor)
-        # logger.info(f"Old {off_checkbox_lctor} {old_next}")
-        # self.driver.set_checkbox_state(off_checkbox_lctor, False)
-        # if self.driver.set_checkbox_state(checkbox_locator, False):
-        #     logger.info(f"Old2 {off_checkbox_lctor} {old_next}")
-        #     try:
-        #         self.driver.wait_for_staleness(old_next, desc=str(off_checkbox_lctor))
-        #     except TimeoutError:
-        #         logger.info(f"Timeout staleness check {soa_cert_checkbox_locator} {old_next}")
-        #         pass
+    def get_mercosur_download_starter(self, policy):
+        soa_cert_checkbox_locator = get_soa_cert_checkbox_locator(policy)
+        mercosur_cert_checkbox_locator = get_mercosur_cert_checkbox_locator(policy)
         return self.wait_for_download_starter(
             on_checkbox_lctor=mercosur_cert_checkbox_locator,
             off_checkbox_lctor=soa_cert_checkbox_locator

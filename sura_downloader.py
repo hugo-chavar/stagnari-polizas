@@ -232,7 +232,7 @@ class SuraDownloader(BaseDownloader):
     def go_to_vehicle_download_page(self, vehicle, validation_data):
                 # Execute the redirect script for the vehicle
                 vehicle_id = vehicle["page_id"]
-                logger.info(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
+                logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
                 script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
                 logger.debug(f"Executing script: {script}")
                 self.driver.execute_script(script)
@@ -258,7 +258,7 @@ class SuraDownloader(BaseDownloader):
         logger.debug(f"Processing {vehicles_count} vehicles for endorsement {e_id}")
         return validation_data
 
-    def get_mercosur_download_starter(self):
+    def get_mercosur_download_starter(self, policy=None):
         return SuraClickDownloadStarter(
                             driver=self.driver,
                             locator=Locator(
@@ -267,7 +267,7 @@ class SuraDownloader(BaseDownloader):
                             ),
                         )
 
-    def get_soa_download_starter(self):
+    def get_soa_download_starter(self, policy=None):
         return SuraClickDownloadStarter(
                         driver=self.driver,
                         locator=Locator(

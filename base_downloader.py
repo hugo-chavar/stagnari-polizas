@@ -36,7 +36,7 @@ class FilenameRenameStrategy:
 
 class AddSuffixRenameStrategy:
     def __init__(self, suffix) -> None:
-        logger.info("Using add suffix rename strategy")
+        logger.debug("Using add suffix rename strategy")
         self.suffix = suffix
 
     def __str__(self) -> str:
@@ -92,6 +92,7 @@ class BaseDownloader(ABC):
         self.search_url = os.getenv(f"{self.name()}_SEARCH_URL")
         self.user = os.getenv(f"{self.name()}_USER")
         self.password = os.getenv(f"{self.name()}_PASSWORD")
+        self.login_time = int(os.getenv(f"{self.name()}_LOGIN_TIME"))
         self.download_folder = os.getenv(f"DOWNLOAD_FOLDER")
 
     @abstractmethod
@@ -140,12 +141,12 @@ class BaseDownloader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_soa_download_starter(self):
+    def get_soa_download_starter(self, policy=None):
         """Handler to start the soa file download process."""
         raise NotImplementedError()
 
     @abstractmethod
-    def get_mercosur_download_starter(self, policy: Dict[str, Any], endorsment_line: int):
+    def get_mercosur_download_starter(self, policy=None):
         """Handler to start the mercosur file download process."""
         raise NotImplementedError()
 
@@ -176,7 +177,7 @@ class BaseDownloader(ABC):
             self.wait_login_confirmation()
             self.logged_in = True
             self.login_time = datetime.now().replace(second=0, microsecond=0)
-            logger.info("Login successful")
+            logger.debug("Login successful")
         except Exception as e:
             error_message = f"Error logging into {self.name()}: {str(e)}"
             logger.error(error_message)
@@ -186,12 +187,12 @@ class BaseDownloader(ABC):
         current_time = datetime.now().replace(second=0, microsecond=0)
 
         time_diff = current_time - self.login_time
-        return time_diff >= timedelta(minutes=12)
+        return time_diff >= timedelta(minutes=self.login_time)
 
     def logout(self):
         """Template method for the logout process."""
         if self.logged_in:
-            logger.info(f"Logging out from {self.name()}")
+            logger.debug(f"Logging out from {self.name()}")
             if self.logout_url:
                 self.driver.navigate(self.logout_url)
             else:
@@ -259,12 +260,12 @@ class BaseDownloader(ABC):
             count = self.get_endorsements_count()
             logger.debug(f"Policy has {count} endorsements")
             spreadsheet_vehicle_count = len(policy["vehicles"])
-            logger.info(f"Policy has {spreadsheet_vehicle_count} vehicles")
+            logger.debug(f"Policy has {spreadsheet_vehicle_count} vehicles")
 
             for i in range(0, count):
-                logger.info(f"Checking row {i} in the main grid")
+                logger.debug(f"Checking row {i} in the main grid")
 
-                logger.info(
+                logger.debug(
                     f"Downloading files, policy: {policy['number']} endorsement: {i}"
                 )
                 validation_data = self.validate_policy(policy, i)
@@ -320,7 +321,7 @@ class BaseDownloader(ABC):
         policy_input = self.find_policy_input()
         logger.debug(f"Found policy input field: {policy_input}")
         policy_input.clear()
-        logger.info(f"Entering policy number: {policy['number']}")
+        logger.debug(f"Entering policy number: {policy['number']}")
         policy_input.send_keys(policy["number"])
         self.search_policy()
 
@@ -435,7 +436,7 @@ class BaseDownloader(ABC):
                     if not download_started:
                         end_time += 10
                         download_started = True
-                    logger.info(f"Archivo aun descargandose, {newest_file} ...")
+                    logger.debug(f"Archivo aun descargandose, {newest_file} ...")
                 else:
 
                     new_file_path = rename_strategy.folder
@@ -455,10 +456,10 @@ class BaseDownloader(ABC):
                     logger.debug(f"Old file path: {downloaded_file_path}")
                     logger.debug(f"New file path: {new_file_path}")
                     os.rename(downloaded_file_path, new_file_path)
-                    logger.info(f"Se renombro archivo {newest_file} a {new_file_name}")
+                    logger.debug(f"Se renombro archivo {newest_file} a {new_file_name}")
                     return new_file_path, True
             else:
-                logger.info("La descarga no inicio aun, se espera")
+                logger.debug("La descarga no inicio aun, se espera")
             time.sleep(3)
         # Sale por timeout
         return None, False
@@ -475,7 +476,7 @@ class BaseDownloader(ABC):
             starter.start_download()
             starter.verify_download_in_progress(str(rename_strategy))
 
-            logger.info(f"Renombrando archivo {self.name()} a {str(rename_strategy)}")
+            logger.debug(f"Renombrando archivo {self.name()} a {str(rename_strategy)}")
 
             try:
                 full_path, downloaded_ok = self._wait_download_and_rename_file(
@@ -521,7 +522,7 @@ class BaseDownloader(ABC):
         rel_path = self.get_relative_path(policy, vehicle_plate)
         folder = self.get_folder_path(rel_path)
         if not vehicle.get("soa"):
-            starter = self.get_soa_download_starter()
+            starter = self.get_soa_download_starter(policy)
             filename = "soa.pdf"  # Certificado de SOA
             vehicle["folder"] = folder
             self.download_file_from_starter(
@@ -532,7 +533,7 @@ class BaseDownloader(ABC):
         if not vehicle.get("mercosur"):
             vehicle["mercosur"] = ""
             if not policy.get("soa_only", False):
-                starter = self.get_mercosur_download_starter()
+                starter = self.get_mercosur_download_starter(policy)
                 filename = "mercosur.pdf"  # Certificado de Mercosur
                 try:
                     self.download_file_from_starter(
@@ -550,16 +551,16 @@ class BaseDownloader(ABC):
             logger.debug(f"Validation data: {str(validation_data)}")
             page_vehicles = self.get_vehicles_data()
             policy_vehicles = policy["vehicles"]
-            logger.info(f"Page vehicles: {page_vehicles}")
-            logger.info(f"Policy vehicles: {policy_vehicles}")
+            logger.debug(f"Page vehicles: {page_vehicles}")
+            logger.debug(f"Policy vehicles: {policy_vehicles}")
 
             reconciled_vehicles = self.reconcile_vehicles(
                 page_vehicles, policy_vehicles
             )
-            logger.info(f"Reconciled vehicles: {reconciled_vehicles}")
+            logger.debug(f"Reconciled vehicles: {reconciled_vehicles}")
             self.is_downloaded(policy)
             if policy["downloaded"]:
-                logger.info("ALREADY DOWNLOADED")
+                logger.debug("ALREADY DOWNLOADED")
                 return
             for index, vehicle in enumerate(reconciled_vehicles):
                 if vehicle["status"] != "Pending":
