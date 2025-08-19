@@ -522,6 +522,12 @@ class BaseDownloader(ABC):
         folder = self.get_folder_path(rel_path)
         if not vehicle.get("soa"):
             starter = self.get_soa_download_starter(policy)
+            if not starter:
+                vehicle["status"] = "Ok"
+                vehicle["reason"] = "No posee SOA"
+                policy["downloaded"] = False
+                policy["obs"] = "No posee SOA"
+                return
             filename = "soa.pdf"  # Certificado de SOA
             vehicle["folder"] = folder
             self.download_file_from_starter(

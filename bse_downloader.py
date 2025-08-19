@@ -343,10 +343,12 @@ class BseDownloader(BaseDownloader):
                         )
 
     def get_soa_download_starter(self, policy):
+        rows = self.driver.get_list_row_count(list_cert_checkbox_locator)
+        if rows == 0:
+            return None
         if not policy.get("soa_only", False):
-            rows = self.driver.get_list_row_count(list_cert_checkbox_locator)
-            if rows < 2:
-                logger.debug("UPDATED TO SOA ONLY")
+            if rows == 1:
+                logger.debug("Updated to SOA only")
                 policy["soa_only"] = True
         soa_cert_checkbox_locator = get_soa_cert_checkbox_locator(policy)
         mercosur_cert_checkbox_locator = get_mercosur_cert_checkbox_locator(policy)
