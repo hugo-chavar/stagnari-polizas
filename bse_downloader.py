@@ -318,6 +318,7 @@ class BseDownloader(BaseDownloader):
         if policy_status in ["ANULADA", "VENCIDA"]:
             policy["obs"] = policy_status
             logger.info(f"Policy status: {policy_status}")
+            return
 
         logger.debug("Expanding policy details")
         self.expand_policy_details()
