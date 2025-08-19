@@ -318,7 +318,7 @@ class BseDownloader(BaseDownloader):
         if policy_status in ["ANULADA", "VENCIDA", "INEXISTENTE"]:
             policy["obs"] = policy_status
             logger.info(f"Policy status: {policy_status}")
-            return
+            return validation_data
 
         logger.debug("Expanding policy details")
         self.expand_policy_details()
@@ -329,6 +329,7 @@ class BseDownloader(BaseDownloader):
         # TODO: Fix this
         if policy_type in ["ANULADA", "VENCIDA"]:
             policy["obs"] = "No es automóvil"
+            return validation_data
             
         validation_data["valid"] = True
         logger.debug("Validation finished")
