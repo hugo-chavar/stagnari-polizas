@@ -352,9 +352,12 @@ def get_grouped_policy_data():
             policy_coverage = policy_df["Cobertura"].iloc[0]
             soa_only = False
             if not pd.isna(policy_coverage):
+                policy_coverage = policy_coverage.strip()
                 soa_only = (
-                    policy_coverage.strip() in ["SOA", "RC BASICO", "BASICO"]
+                    policy_coverage in ["SOA", "RC BASICO", "BASICO"]
                 )
+            else:
+                policy_coverage = ""
 
             # Get all vehicles for this policy
             vehicles = []
@@ -394,6 +397,7 @@ def get_grouped_policy_data():
                 "contains_cars": contains_cars,
                 "vehicles": vehicles,
                 "soa_only": soa_only,
+                "coverage": policy_coverage,
                 "cancelled": cancelled,
             }
             policies.append(policy)

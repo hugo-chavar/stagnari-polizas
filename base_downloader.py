@@ -324,7 +324,7 @@ class BaseDownloader(ABC):
         exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
         policy_expired = exp_date < datetime.now().date()
         policy_cancelled = policy.get("cancelled", False)
-        soa_only = policy.get("soa_only", False)
+        soa_only = self.is_soa_only(policy)
         policy["expired"] = policy_expired
         policy["downloaded"] = (
             policy_cancelled or policy_expired or not policy["contains_cars"]
@@ -354,6 +354,10 @@ class BaseDownloader(ABC):
         policy["downloaded"] = all(
             vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
         )
+
+    def is_soa_only(self, policy):
+        soa_only = policy.get("soa_only", False)
+        return soa_only
 
     def mark_downloaded_policies(self, policies):
         """Check if all policies have been downloaded successfully."""
