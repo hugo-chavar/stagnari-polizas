@@ -92,7 +92,7 @@ class BaseDownloader(ABC):
         self.search_url = os.getenv(f"{self.name()}_SEARCH_URL")
         self.user = os.getenv(f"{self.name()}_USER")
         self.password = os.getenv(f"{self.name()}_PASSWORD")
-        self.login_time = int(os.getenv(f"{self.name()}_LOGIN_TIME"))
+        self.login_timeout = int(os.getenv(f"{self.name()}_LOGIN_TIMEOUT"))
         self.download_folder = os.getenv(f"DOWNLOAD_FOLDER")
 
     @abstractmethod
@@ -187,7 +187,7 @@ class BaseDownloader(ABC):
         current_time = datetime.now().replace(second=0, microsecond=0)
 
         time_diff = current_time - self.login_time
-        return time_diff >= timedelta(minutes=self.login_time)
+        return time_diff >= timedelta(minutes=self.login_timeout)
 
     def logout(self):
         """Template method for the logout process."""
