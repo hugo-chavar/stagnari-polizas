@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 view_name = 'viewns_Z7_8A401HS0K0L5C06K03V0LHEQF2_:'
 tab_result = view_name + 'formPolizas:tablaResultado:'
 tab_imprimir_poliza = view_name + 'frmPdf:tabPnlImprimirPoliza:'
+cert_chkbox = 'chkCert'
 
 btn_search_lctor = Locator(LocatorType.ID, tab_result + "btnBuscar")
 arrow_down_lctor = Locator(LocatorType.ID, tab_result + '0:j_id_6r')
 btn_print_lctor = Locator(LocatorType.ID, tab_result + '0:j_id_8p') 
 select_cert_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + "certificado") 
 btn_view_report_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'btnValidar')
-btn_dwnld_policy_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'j_id_2v')
 
 other_docs_checkbox_locators = [
     Locator(LocatorType.ID, f"{tab_imprimir_poliza}j_id_2a:{i}:chkListaPartes")
@@ -30,8 +30,10 @@ policy_checkbox_lctor = Locator(LocatorType.ID, tab_imprimir_poliza + 'checkPoli
 
 other_docs_checkbox_locators.append(policy_checkbox_lctor)
 
+list_cert_checkbox_locator = Locator(LocatorType.CSS, f"ul.form-group-portal:has(input[id$='{cert_chkbox}'])")
+
 cert_checkbox_locators = [
-    Locator(LocatorType.ID, f"{tab_imprimir_poliza}j_id_2o:{i}:chkCert")
+    Locator(LocatorType.ID, f"{tab_imprimir_poliza}j_id_2o:{i}:{cert_chkbox}")
     for i in range(2)
 ]
 
@@ -339,6 +341,11 @@ class BseDownloader(BaseDownloader):
                         )
 
     def get_soa_download_starter(self, policy):
+        if not policy.get("soa_only", False):
+            rows = self.driver.get_list_row_count(list_cert_checkbox_locator)
+            if rows < 2:
+                logger.warning("UPDATED TO SOA ONLY")
+                policy["soa_only"] = True
         soa_cert_checkbox_locator = get_soa_cert_checkbox_locator(policy)
         mercosur_cert_checkbox_locator = get_mercosur_cert_checkbox_locator(policy)
         return self.wait_for_download_starter(
@@ -389,11 +396,11 @@ class BseDownloader(BaseDownloader):
             DriverException: For other WebDriver errors
         """
         try:
-            #row = driver.find_element_by_css_selector("tr.ui-widget-content")
             current_lctor = policy_row_lctor
             row_el = self.driver.find_element(current_lctor)
 
             #estado = row.find_element_by_xpath(".//td[contains(@class, 'text-right')][.//div[contains(@class, 'filtroResponsivo')]]").text
+            # TODO: fix here
             current_lctor = policy_row_status_lctor
             status_el = self.driver.find_element(current_lctor, context=row_el)
             status = status_el.text.strip()

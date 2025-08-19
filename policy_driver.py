@@ -513,3 +513,38 @@ cert_value.select_by_value('1')
             element.click()
             return True
         return False
+
+    def get_list_row_count(self, locator: Locator) -> int:
+        """
+        Returns the number of rows in a list matching the locator.
+
+        Args:
+            locator: Locator for the list rows (should target LI elements)
+
+        Returns:
+            int: Number of rows found
+
+        Raises:
+            ElementNotFoundException: If no rows are found
+            DriverException: For other WebDriver errors
+        """
+        # # Find the ul that contains input elements with id ending in "chkCert"
+        # ul_element = driver.find_element(By.CSS_SELECTOR, "ul.form-group-portal:has(input[id$='chkCert'])")
+        # li_count = len(ul_element.find_elements(By.TAG_NAME, "li"))
+        # print(f"Number of li elements: {li_count}")
+        try:
+            list_element = self.find_element(locator)
+            rows = self.find_elements(
+                Locator(LocatorType.TAG, "li"), 
+                list_element
+            )
+            if not rows:
+                logger.warning(f"No rows found matching locator: {str(locator)}")
+            li_count = len(rows)
+            logger.debug(f"Locator: {str(locator)} has {li_count} rows")
+            return li_count
+        except ElementNotFoundException:
+            # Return 0 if the element pattern exists but no rows are present
+            return 0
+        except Exception as e:
+            raise DriverException(f"Error getting row count: {str(e)} - locator: {str(locator)}")
