@@ -136,11 +136,6 @@ class BaseDownloader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def download_policy_files(self, policy: Dict[str, Any], endorsment_line: int):
-        """Handle the actual file download process."""
-        raise NotImplementedError()
-
-    @abstractmethod
     def get_soa_download_starter(self, policy=None):
         """Handler to start the soa file download process."""
         raise NotImplementedError()
