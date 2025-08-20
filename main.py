@@ -116,7 +116,7 @@ def answer_question(item: Item, credentials: HTTPBasicCredentials = Depends(secu
             bot_response = 'Los autos asociados a clientes con el apellido "Pepito" son:  \n\n1. *PEPITO, WALTER Y PEPITA, SUSANA*:  \n   - FORD NEW 208 ALLURE 1.2 EXTRA FULL (2017, NAFTA, SCH8879)  \n   - FORD (1980, DIESEL, YUI6855)  \n   - TOYOTA RAV4 2.5 LIMITED PLUS HYBRID 4X4 (2034, NAFTA, TTT8998)  \n   - TOYOTA HILUX 3.0 SRV 4X2 (2013, DIESEL, QWE6545)  \n\n2. *TEST PEPITO, GUSTAVO ADOLFO*:  \n   - TRAILER TRANSPORTADOR DE ANIMALES (2015, sin combustible, OBO587)  \n   - CHEVROLET S 10 CTDI LT 4X4 2.8 AUT. (2023, DIESEL, OAE6054)  \n\n3. *TEST PEPITO, GIANELLA*:  \n   - MASERATI GHIBLI 3.0 (2017, NAFTA, DJK5583)  \n\n4. *SHACK PEPITO, MARIA VICTORIA*:  \n   - TOYOTA PRIUS C 1.5 HIBRIDO EXTRA FULL AUT. (2018, ELECTRONICOS, SCN5281)  \n   - NISSAN KICKS EXCLUSIVE 1.6 CVT AUT. (2021, NAFTA, ERT4578)  \n\n5. *TEST PEPITO, MARTIN Fernando*:  \n   - TOYOTA COROLLA CROSS HYBRID 1.8 SE-G AUT. (2023, NAFTA, SDB4115)  \n   - TOYOTA COROLLA 1.8 DLX (1986, DIESEL, PRP7993)  \n\n6. *TEST PEPITO, FEDERICO BERNARDO*:  \n   - VOLKSWAGEN GOL GP POWER 1.6 A/A (2013, NAFTA, EWE7385)'
         else:
             try:
-                bot_response = get_response_to_message(item.message, item.number)
+                bot_response, _ = get_response_to_message(item.message, item.number)
             except ValueError as ve:
                 print(f"ValueError: {ve}", flush=True)
                 bot_response = str(ve)
