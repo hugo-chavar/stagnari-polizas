@@ -209,7 +209,7 @@ def health_check():
 
 
 @app.get("/policy")
-def query_history_endpoint(
+def get_policy(
     user: User, credentials: HTTPBasicCredentials = Depends(security)
 ):
     if verify_admin(credentials):
