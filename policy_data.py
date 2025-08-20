@@ -83,6 +83,32 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                     elif policy_value == "1972525":
                         row[lic_plate_index] = "BED4626"
 
+        to_remove = [
+            {"policy": "8170039", "license_plate": "SCJ3994"},
+            {"policy": "9235631", "license_plate": "AAY1121"},
+            {"policy": "9250984", "license_plate": "SCV6690"}, 
+            {"policy": "9250985", "license_plate": "SBL1616"}, 
+            {"policy": "9586003", "license_plate": "B580319"}, 
+            {"policy": "9220158", "license_plate": "SAC9491"}
+        ]
+        
+        # Create a list to store indices of rows to remove
+        rows_to_remove = []
+        
+        for i, row in enumerate(data[1:], start=1):  # start=1 to skip header
+            policy_value = row[policy_index]
+            lic_plate_value = row[lic_plate_index]
+            
+            for removal in to_remove:
+                if (policy_value == removal["policy"] and 
+                    lic_plate_value == removal["license_plate"]):
+                    rows_to_remove.append(i)
+                    break
+        
+        # Remove rows in reverse order to avoid index issues
+        for index in sorted(rows_to_remove, reverse=True):
+            data.pop(index)
+
         with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
             writer.writerows(data)
