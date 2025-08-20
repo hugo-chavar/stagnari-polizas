@@ -186,7 +186,7 @@ def get_file_list(parsed_list):
             for v in p["vehicles"]:
                 if v["ok"]:
                     ok_count += 1
-                    details = f"Poliza {p["policy_number"]} matricula {v["license_plate"]}"
+                    details = f"Poliza {p["policy_number"]} matricula {v.get("license_plate","NO DISPONIBLE")}"
                     if download_soa and v["soa_path"]:
                         file_list.append({
                             "path": v["soa_path"],
