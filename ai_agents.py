@@ -162,7 +162,7 @@ def add_file_paths(parsed_list):
                 ok, msg, soa_path, mer_path = find_files(
                     company=company,
                     policy_number=p["policy_number"],
-                    license_plate=v["license_plate"],
+                    license_plate=v.get("license_plate",None),
                     user_wants_mercosur_file=p["download_mer"]
                 )
                 v["ok"] = ok
