@@ -298,6 +298,10 @@ class BseDownloader(BaseDownloader):
         self.driver.wait_for_element(policy_checkbox_lctor)
         logger.debug("Page has been refreshed, checkbox are visible")
         
+        rows = self.driver.get_list_row_count(list_cert_checkbox_locator)
+        if rows == 0:
+            return None
+        
         for index, locator in enumerate(other_docs_checkbox_locators):
             if index < len(other_docs_checkbox_locators) - 1:
                 next_lctor = other_docs_checkbox_locators[index + 1]
