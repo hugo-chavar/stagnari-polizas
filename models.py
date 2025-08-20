@@ -33,6 +33,22 @@ class Policy:
         """
         return self.expiration_date < datetime.now().date()
 
+    def to_dict(self) -> dict:
+        """Convert instance to dictionary with proper serialization."""
+        result = {}
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, (datetime, date)):
+                result[field_name] = field_value.isoformat()
+            elif hasattr(field_value, 'to_dict'):
+                result[field_name] = field_value.to_dict()
+            elif isinstance(field_value, list):
+                result[field_name] = [
+                    item.to_dict() if hasattr(item, 'to_dict') else item
+                    for item in field_value
+                ]
+            else:
+                result[field_name] = field_value
+        return result
 
 @dataclass
 class Car:
@@ -46,3 +62,13 @@ class Car:
     mercosur_file_path: Optional[str] = None
     timestamp: Optional[datetime] = None
     obs: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        """Convert instance to dictionary with proper serialization."""
+        result = {}
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, (datetime, date)):
+                result[field_name] = field_value.isoformat()
+            else:
+                result[field_name] = field_value
+        return result

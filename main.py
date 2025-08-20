@@ -12,6 +12,7 @@ from chat_history_db import (
     add_user,
     get_user,
     get_all_users,
+    get_policy_with_cars,
 )
 from split_messages import split_long_message
 from files_finder import find_files
@@ -205,3 +206,17 @@ def send_files(
 def health_check():
     # Add critical checks here (e.g., DB, Redis, etc.)
     return Response(status_code=200)
+
+
+@app.get("/policy")
+def query_history_endpoint(
+    user: User, credentials: HTTPBasicCredentials = Depends(security)
+):
+    if verify_admin(credentials):
+        company = user.name
+        policy_number = user.number
+        policy = get_policy_with_cars(company, policy_number)
+        if not policy:
+            message = f"Poliza {policy_number} inexistente en {company}"
+            return {"message": message}
+        return {"policy": policy.to_dict()}
