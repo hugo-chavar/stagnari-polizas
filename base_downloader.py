@@ -354,6 +354,8 @@ class BaseDownloader(ABC):
         policy["downloaded"] = all(
             vehicle.get("files_are_valid", False) for vehicle in policy["vehicles"]
         )
+        if not policy["downloaded"]:
+            logger.info(f"{policy["number"]} is not downloaded")
 
     def is_soa_only(self, policy):
         soa_only = policy.get("soa_only", False)
@@ -510,6 +512,10 @@ class BaseDownloader(ABC):
                 self.login()
                 self.download_policies(policies)
                 logger.info(f"Downloaded files: {policies}")
+            else:
+                logger.info(
+                    "ALL POLICIES are DOWLOADED."
+                )
         except Exception as e:
             logger.exception("Detailed error:")
             logger.error(f"Error during policy download: {str(e)}")
