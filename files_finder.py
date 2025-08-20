@@ -28,7 +28,7 @@ def find_files(
     license_plate: str,
     user_wants_mercosur_file: bool,
 ) -> Tuple[bool, str, str, str]:
-    if company.strip().upper() != "SURA":
+    if company.strip().upper() not in ["SURA", "BSE"]:
         message = f"Poliza {policy_number}. Aún no es posible la descarga de certificados de {company} "
         return False, message, None, None
 
