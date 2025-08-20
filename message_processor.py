@@ -6,7 +6,7 @@ from filter_utils import remove_spanish_accents
 logger = logging.getLogger(__name__)
 
 
-def get_response_to_message(incoming_message: str, to_number: str) -> str:
+def get_response_to_message(incoming_message: str, to_number: str):
     """
     Processes incoming WhatsApp message and returns appropriate response.
 
@@ -45,7 +45,7 @@ def get_response_to_message(incoming_message: str, to_number: str) -> str:
     if incoming_message in common_phrases:
         response = common_phrases[incoming_message]
         logger.info(f"Common phrase response: {response}")
-        return response
+        return response, None
 
     load_csv_data()
     filter = generate_query(incoming_message, to_number)
