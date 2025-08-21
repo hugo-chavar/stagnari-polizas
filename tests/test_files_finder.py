@@ -345,6 +345,29 @@ def make_policy_mock(policy_data, cars_data):
                 None,
             ),
         },
+        # 13. Policy with car, valid, not expired, downloaded, not cancelled, not soa_only, has SOA
+        {
+            "policy": {
+                "company": "SURA",
+                "policy_number": "1937446",
+                "year": 2025,
+                "expiration_date": "2025-05-27",
+                "downloaded": 1,
+                "contains_cars": 1,
+                "soa_only": 0,
+                "cancelled": 0,
+                "obs": "Vencida",
+            },
+            "cars": [
+                {
+                    "license_plate": "AAJ4721",
+                    "soa_file_path": "soa_path.pdf",
+                    "mercosur_file_path": "mer_path.pdf",
+                }
+            ],
+            "args": ("SURA", "1937446", "AAJ4721", True),
+            "expected": (True, "", "soa_path.pdf", "mer_path.pdf"),
+        },
     ],
 )
 def test_find_files(case):
