@@ -169,6 +169,7 @@ def add_file_paths(parsed_list):
                 v["error_msg"] = msg
                 v["soa_path"] = soa_path
                 v["mer_path"] = mer_path
+    logger.info(f"Parsed list: {parsed_list}")
     return parsed_list
 
 
@@ -178,8 +179,6 @@ def get_file_list(parsed_list):
     error_msg = None
     
     policy_list = add_file_paths(parsed_list)
-    download_soa = parsed_list.get("download_soa", True)
-    download_mer = parsed_list.get("download_mer", False)
     
     for _, policies in policy_list.items():
         for p in policies:
@@ -187,12 +186,12 @@ def get_file_list(parsed_list):
                 if v["ok"]:
                     ok_count += 1
                     details = f"Poliza {p["policy_number"]} matricula {v.get("license_plate","NO DISPONIBLE")}"
-                    if download_soa and v["soa_path"]:
+                    if p.get("download_soa", True) and v["soa_path"]:
                         file_list.append({
                             "path": v["soa_path"],
                             "name": f"Certificado SOA de {details}"
                         })
-                    if download_mer and v["mer_path"]:
+                    if p.get("download_mer", False) and v["mer_path"]:
                         file_list.append({
                             "path": v["mer_path"],
                             "name": f"Certificado Mercosur de {details}"
