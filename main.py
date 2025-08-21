@@ -9,6 +9,7 @@ from chat_history_db import (
     get_client_history,
     get_query_history,
     cleanup_old_messages,
+    delete_user_messages,
     add_user,
     get_user,
     get_all_users,
@@ -153,6 +154,13 @@ class User(BaseModel):
     name: str
     number: str
 
+@app.post("/delete-user-history")
+def delete_user_history(
+    user: User, credentials: HTTPBasicCredentials = Depends(security)
+):
+    if verify_admin(credentials):
+        deleted = delete_user_messages(user.number)
+        return {"status": f"OK. {deleted} registros eliminados"}
 
 @app.post("/add-user")
 def add_authorized_user(

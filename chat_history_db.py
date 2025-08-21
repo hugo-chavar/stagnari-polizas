@@ -176,6 +176,21 @@ def cleanup_old_messages(days_to_keep: int = 2):
         conn.commit()
         return cursor.rowcount  # Returns number of deleted rows
 
+def delete_user_messages(phone_number: str):
+    """Clean up messages of a specific user"""
+
+    with sqlite3.connect(DATABASE_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM chat_history WHERE client_number = ?",
+            (phone_number,),
+        )
+        cursor.execute(
+            "DELETE FROM query_history WHERE timestamp = ?",
+            (phone_number,),
+        )
+        conn.commit()
+        return cursor.rowcount
 
 def add_user(client_number: str, name: str) -> bool:
     """Add a new user to the database"""
