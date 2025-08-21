@@ -69,13 +69,22 @@ def process_incoming_message(filter, incoming_message, to_number):
     if filter.get("soa", False) or filter.get("mer", False):
         parsed_list = get_parsed_list(response)
         file_list, ok_count, error_count, error_msg = get_file_list(parsed_list)
+        logger.info(f"FileList: {file_list}")
         if error_count > 0:
-            adj = "Algunas de las" if ok_count > 0 else "Todos las"
+            if (ok_count + error_count) > 1:
+                adj = "Algunas" if ok_count > 0 else "Ninguna"
+                title = f"{adj} de las polizas solicitadas no se pueden descargar"
+            else:
+                title = "La poliza solicitada no se puede descargar"
             response = (
                 f"{response}\n\n"
-                f"*{adj} polizas solicitadas no se pueden descargar:*\n"
+                f"*{title}:*\n"
                 f"{error_msg}"
-                f"{f'\n\n*Comienza la descarga de certificados de {ok_count} vehiculos ...*' if ok_count > 0 else ''}"
+            )
+        if ok_count > 0:
+            response = (
+                f"{response}"
+                f"{f'\n\n*Comienza la descarga de certificados de {ok_count} vehiculos ...*'}"
             )
     
     logger.info(f"Final response:\n{response}")
