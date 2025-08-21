@@ -68,14 +68,14 @@ def process_incoming_message(filter, incoming_message, to_number):
     file_list = None
     if filter.get("soa", False) or filter.get("mer", False):
         parsed_list = get_parsed_list(response)
-        file_list, ok_count, error_count, error_msg = get_file_list(parsed_list)
+        file_list, tot_count, ok_count, error_count, error_msg = get_file_list(parsed_list)
         logger.info(f"FileList: {file_list}")
         if error_count > 0:
-            if (ok_count + error_count) > 1:
-                adj = "Algunas" if ok_count > 0 else "Ninguna"
-                title = f"{adj} de las polizas solicitadas no se pueden descargar"
+            if tot_count > 1:
+                adj = ["Algunos", "no se"] if ok_count > 0 else ["Ninguno", "se"]
+                title = f"{adj[0]} de los PDF solicitados {adj[1]} pueden descargar"
             else:
-                title = "La poliza solicitada no se puede descargar"
+                title = "Hay documentos que no se puede descargar"
             response = (
                 f"{response}\n\n"
                 f"*{title}:*\n"

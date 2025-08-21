@@ -175,7 +175,7 @@ def add_file_paths(parsed_list):
 
 def get_file_list(parsed_list):
     file_list = []
-    ok_count = error_count = 0 
+    ok_count = error_count = tot_count = 0 
     error_msg = None
     
     policy_list = add_file_paths(parsed_list)
@@ -183,9 +183,10 @@ def get_file_list(parsed_list):
     for _, policies in policy_list.items():
         for p in policies:
             for v in p["vehicles"]:
+                tot_count += 1
                 if v["ok"]:
                     ok_count += 1
-                    details = f"Poliza {p["policy_number"]} matricula {v.get("license_plate","NO DISPONIBLE")}"
+                    details = f"Poliza {p["policy_number"]} Matricula {v.get("license_plate","NO DISPONIBLE")}"
                     if p.get("download_soa", True) and v["soa_path"]:
                         file_list.append({
                             "path": v["soa_path"],
@@ -196,11 +197,11 @@ def get_file_list(parsed_list):
                             "path": v["mer_path"],
                             "name": f"Certificado Mercosur de {details}"
                         })
-                else:
+                if v["error_msg"]:
                     error_count += 1
                     if not error_msg:
                         error_msg = v["error_msg"]
                     else:
                         error_msg = f"{error_msg}\n\n{v["error_msg"]}"
                 
-    return file_list, ok_count, error_count, error_msg
+    return file_list, tot_count, ok_count, error_count, error_msg

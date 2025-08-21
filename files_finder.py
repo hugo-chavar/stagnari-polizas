@@ -10,7 +10,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-def get_file_paths(policy: Policy, car: Car) -> Tuple[bool, str, str, str]:
+def get_file_paths(policy: Policy, car: Car, previous_msg: str="") -> Tuple[bool, str, str, str]:
     if not car.soa_file_path:
         message = (
             f"Problema inesperado al obtener el SOA de poliza {policy.policy_number} de {policy.company}"
@@ -19,7 +19,7 @@ def get_file_paths(policy: Policy, car: Car) -> Tuple[bool, str, str, str]:
         )
         return False, message, None, None
 
-    return True, "", car.soa_file_path, car.mercosur_file_path
+    return True, previous_msg, car.soa_file_path, car.mercosur_file_path
 
 
 def find_files(
@@ -28,6 +28,7 @@ def find_files(
     license_plate: str,
     user_wants_mercosur_file: bool,
 ) -> Tuple[bool, str, str, str]:
+    message = ""
     if company.strip().upper() not in ["SURA", "BSE"]:
         message = f"Poliza {policy_number}. Aún no es posible la descarga de certificados de {company} "
         return False, message, None, None
@@ -63,7 +64,6 @@ def find_files(
 
     if policy.soa_only and user_wants_mercosur_file:
         message = f"Poliza {policy_number} de {company} no tiene Certificado Mercosur"
-        return False, message, None, None
 
     if license_plate:
         car = policy.get_car(license_plate)
@@ -71,7 +71,7 @@ def find_files(
             message = f"Poliza {policy_number} de {company} no contiene un vehiculo con matricula {license_plate}"
             return False, message, None, None
 
-        return get_file_paths(policy, car)
+        return get_file_paths(policy, car, message)
 
     cars = policy.cars
     if len(cars) > 1:
@@ -79,4 +79,4 @@ def find_files(
         message = f"Poliza {policy_number} de {company} contiene más de un vehiculo. Especificar la matrícula"
         return False, message, None, None
 
-    return get_file_paths(policy, cars[0])
+    return get_file_paths(policy, cars[0], message)
