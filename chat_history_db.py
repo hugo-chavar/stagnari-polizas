@@ -186,7 +186,7 @@ def delete_user_messages(phone_number: str):
             (phone_number,),
         )
         cursor.execute(
-            "DELETE FROM query_history WHERE timestamp = ?",
+            "DELETE FROM query_history WHERE client_number = ?",
             (phone_number,),
         )
         conn.commit()
