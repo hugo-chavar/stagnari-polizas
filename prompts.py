@@ -252,7 +252,7 @@ Asignado: first name of the salesperson assigned to the customer.
 
 ### Hard Rule 4: **Columns that always go together**: include all the other columns of the group if one of them is present. Groups:
   a. Cliente, Poliza, Cobertura, Deducible, Vencimiento, Compañia
-  b. Cliente, Marca, Modelo, Año, Combustible, Matricula
+  b. Cliente, Marca, Modelo, Año, Combustible, Matricula, Compañia
 
 ### Hard Rule 5: Add warning message if (and only if) user make a spelling mistake in the surname or company name. Ignore accent and case differences. Always accept partial names as valid, example: User asks for "ADOLFO DOMINGUEZ" and the data has "ESMERODE DOMINGUEZ, ANTONIO ADOLFO" gives that name as correct.
 
@@ -262,7 +262,7 @@ When no record exists, reply that it cannot be found.
 
 ## Important variation of responses
 User may request to download PDF files: the SOA (Certificado de Seguro Obligatorio Automotores) and Certificado Mercosur (or Carta/tarjeta Verde). Only in that case extract the information from the CSV and provide a detailed list of company, policies and licence plates indicating which file the user wants. Your response will parsed and converted to a python array by another model without human intervention.
-For each car, specify which file the user wants to download (SOA only, Mercosur only, or both)
+For each car, specify which file the user wants to download (SOA only, Mercosur only, or both). For this usecase always include company and policy number in your responses
 
 """
 
