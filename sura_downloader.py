@@ -41,29 +41,14 @@ class SuraDownloader(BaseDownloader):
     def get_login_pass_locator(self):
         return Locator(LocatorType.ID, "Login1_Password")
     
+    def get_login_btn_locator(self):
+        return Locator(LocatorType.ID, "Login1_LoginButton")
+    
     def wait_login_confirmation(self):
         """Wait for confirmation that login was successful."""
         self.driver.wait_for_element(
             Locator(LocatorType.CSS, "p#nombreUsuario.datosUsuario")
         )
-
-    def do_login(self):
-        """Perform SURA login with credentials."""
-        try:
-            # Enter username
-            self.driver.send_keys(Locator(LocatorType.ID, "Login1_UserName"), self.user)
-
-            # Enter password
-            self.driver.send_keys(
-                Locator(LocatorType.ID, "Login1_Password"), self.password
-            )
-
-            # Click login button
-            self.driver.click(Locator(LocatorType.ID, "Login1_LoginButton"))
-        except Exception as e:
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Login operation failed: {str(e)}"
-            )
 
     def do_logout(self):
         """Perform SURA logout."""
@@ -226,13 +211,13 @@ class SuraDownloader(BaseDownloader):
             pass
 
     def go_to_vehicle_download_page(self, vehicle, validation_data):
-                # Execute the redirect script for the vehicle
-                vehicle_id = vehicle["page_id"]
-                logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
-                script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
-                logger.debug(f"Executing script: {script}")
-                self.driver.execute_script(script)
-                logger.debug("Script finished")
+        # Execute the redirect script for the vehicle
+        vehicle_id = vehicle["page_id"]
+        logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
+        script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
+        logger.debug(f"Executing script: {script}")
+        self.driver.execute_script(script)
+        logger.debug("Script finished")
 
     def validate_policy(self, policy, endorsement_line):
         e_id, ramo_cod = self.select_endorsement_line(endorsement_line)

@@ -96,6 +96,9 @@ class BseDownloader(BaseDownloader):
     def get_login_pass_locator(self):
         return Locator(LocatorType.ID, "password")
 
+    def get_login_btn_locator(self):
+        return Locator(LocatorType.ID, "login.button.login")
+
     def wait_login_confirmation(self):
         """Wait for confirmation that login was successful."""
         try:
@@ -110,24 +113,6 @@ class BseDownloader(BaseDownloader):
             error_message = f"Error Login BSE: {msg.text}"
             logger.info(error_message)
             raise CompanyPolicyException(company=self.name(), reason=error_message)
-
-    def do_login(self):
-        """Perform BSE login with credentials."""
-        try:
-            # Enter username
-            self.driver.send_keys(Locator(LocatorType.ID, "userID"), self.user)
-
-            # Enter password
-            self.driver.send_keys(
-                Locator(LocatorType.ID, "password"), self.password
-            )
-
-            # Click login button
-            self.driver.click(Locator(LocatorType.ID, "login.button.login"))
-        except Exception as e:
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Login operation failed: {str(e)}"
-            )
 
     def do_logout(self):
         """Perform BSE logout."""

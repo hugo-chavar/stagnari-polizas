@@ -107,6 +107,10 @@ class BaseDownloader(ABC):
     @abstractmethod
     def get_login_pass_locator(self):
         raise NotImplementedError()
+    
+    @abstractmethod
+    def get_login_btn_locator(self):
+        raise NotImplementedError()
 
     def wait_login_page(self):
         """Wait for login page elements to be ready."""
@@ -123,10 +127,26 @@ class BaseDownloader(ABC):
         """Wait for confirmation that login was successful."""
         raise NotImplementedError()
 
-    @abstractmethod
     def do_login(self):
         """Perform the login operation with company-specific credentials."""
-        raise NotImplementedError()
+        try:
+            # Enter username
+            self.driver.send_keys(
+                self.get_login_username_locator(), self.user)
+
+            # Enter password
+            self.driver.send_keys(
+                self.get_login_pass_locator(), self.password
+            )
+
+            # Click login button
+            self.driver.click(
+                self.get_login_btn_locator()
+            )
+        except Exception as e:
+            raise CompanyPolicyException(
+                company=self.name(), reason=f"Login operation failed: {str(e)}"
+            )
 
     @abstractmethod
     def do_logout(self):
