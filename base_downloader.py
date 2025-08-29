@@ -101,9 +101,22 @@ class BaseDownloader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def wait_login_page(self):
-        """Wait for the login page to load and be ready for interaction."""
+    def get_login_username_locator(self):
         raise NotImplementedError()
+    
+    @abstractmethod
+    def get_login_pass_locator(self):
+        raise NotImplementedError()
+
+    def wait_login_page(self):
+        """Wait for login page elements to be ready."""
+        try:
+            self.driver.wait_for_element(self.get_login_username_locator())
+            self.driver.wait_for_element(self.get_login_pass_locator())
+        except Exception as e:
+            raise CompanyPolicyException(
+                company=self.name(), reason=f"Login page not loaded properly: {str(e)}"
+            )
 
     @abstractmethod
     def wait_login_confirmation(self):

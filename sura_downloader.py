@@ -35,16 +35,12 @@ class SuraDownloader(BaseDownloader):
     def name(self) -> str:
         return "SURA"
 
-    def wait_login_page(self):
-        """Wait for SURA login page elements to be ready."""
-        try:
-            self.driver.wait_for_element(Locator(LocatorType.ID, "Login1_UserName"))
-            self.driver.wait_for_element(Locator(LocatorType.ID, "Login1_Password"))
-        except Exception as e:
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Login page not loaded properly: {str(e)}"
-            )
-
+    def get_login_username_locator(self):
+        return Locator(LocatorType.ID, "Login1_UserName")
+    
+    def get_login_pass_locator(self):
+        return Locator(LocatorType.ID, "Login1_Password")
+    
     def wait_login_confirmation(self):
         """Wait for confirmation that login was successful."""
         self.driver.wait_for_element(

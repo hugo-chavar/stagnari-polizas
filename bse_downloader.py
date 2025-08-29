@@ -90,15 +90,11 @@ class BseDownloader(BaseDownloader):
     def name(self) -> str:
         return "BSE"
 
-    def wait_login_page(self):
-        """Wait for BSE login page elements to be ready."""
-        try:
-            self.driver.wait_for_element(Locator(LocatorType.ID, "userID"))
-            self.driver.wait_for_element(Locator(LocatorType.ID, "password"))
-        except Exception as e:
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Login page not loaded properly: {str(e)}"
-            )
+    def get_login_username_locator(self):
+        return Locator(LocatorType.ID, "userID")
+    
+    def get_login_pass_locator(self):
+        return Locator(LocatorType.ID, "password")
 
     def wait_login_confirmation(self):
         """Wait for confirmation that login was successful."""
