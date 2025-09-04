@@ -423,6 +423,7 @@ def get_grouped_policy_data():
                 "contains_cars": contains_cars,
                 "vehicles": vehicles,
                 "soa_only": soa_only,
+                "obs": "",
                 "coverage": policy_coverage,
                 "cancelled": cancelled,
             }
