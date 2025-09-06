@@ -152,12 +152,10 @@ class SancorDownloader(BaseDownloader):
         logger.debug('fvr 4')
         fecha_actual = datetime.strptime(fecha_actual_value, '%d/%m/%Y')
         # fecha_actual += timedelta(days=20)
+        filas_vigentes = {}
         fila_vigente = None
 
         for fila in filas:
-            # Obtener las columnas de vigencia
-            # fila_html = fila.get_attribute('outerHTML')
-            # print(f"Poliza: \n{fila_html}")
             columnas = self.driver.find_elements(Locator(LocatorType.TAG, 'td'), fila)
 
             vigencia_desde_text = columnas[7].text.strip() if len(columnas) > 7 else None
@@ -184,11 +182,12 @@ class SancorDownloader(BaseDownloader):
                 if vigencia_hasta:
                     # Verificar si la fecha actual está entre las fechas de vigencia
                     if vigencia_desde <= fecha_actual <= vigencia_hasta:
-                        fila_vigente = fila
-                        break
+                        filas_vigentes[vigencia_desde] = fila
 
+        if filas_vigentes:
+            fila_vigente = filas_vigentes[max(filas_vigentes.keys())]
+            logger.info(fila_vigente.get_attribute('outerHTML'))
         logger.debug('fvr 5')
-        logger.info(fila_vigente.get_attribute('outerHTML'))
         return fila_vigente
 
     def go_to_vehicle_download_page(self, vehicle, validation_data):
