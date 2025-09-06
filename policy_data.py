@@ -45,6 +45,7 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
         lic_plate_index = data[0].index("Matricula")
         company_index = data[0].index("Compañia")
         brand_index = data[0].index("Marca")
+        expiration_index = data[0].index("Vencimiento")
         for row in data[1:]:
 
             policy_value = row[policy_index]
@@ -82,6 +83,9 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                         row[lic_plate_index] = "SDH3532"
                     elif policy_value == "1972525":
                         row[lic_plate_index] = "BED4626"
+            # Fix renewed policies
+            if policy_value == "6498386":
+                row[expiration_index] = "05/09/2026"
 
         to_remove = [
             {"policy": "8170039", "license_plate": "SCJ3994"},
