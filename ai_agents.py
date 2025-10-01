@@ -63,8 +63,7 @@ def generate_query(question, client_number):
     save_query(client_number, "user", question)
     response = client.chat.completions.create(
         model=MODEL,
-        messages=messages,
-        max_tokens=400
+        messages=messages
     )
     model_response = response.choices[0].message.content
     logger.info(f"Question:\n{question}")
