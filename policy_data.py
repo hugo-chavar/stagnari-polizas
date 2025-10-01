@@ -89,6 +89,7 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
 
         to_remove = [
             {"policy": "8170039", "license_plate": "SCJ3994"},
+            {"policy": "8466824", "license_plate": "SDE5032"},
             {"policy": "9235631", "license_plate": "AAY1121"},
             {"policy": "9250984", "license_plate": "SCV6690"}, 
             {"policy": "9250985", "license_plate": "SBL1616"}, 
