@@ -19,7 +19,7 @@ def get_response_to_message(incoming_message: str, to_number: str):
 
     incoming_message = remove_spanish_accents(incoming_message.lower()).strip()
     common_phrases = {
-        "": "",
+        "": "Hola! ¿En qué puedo ayudarte?",
         "hola": "Hola! ¿En qué puedo ayudarte?",
         "buenas": "Hola! ¿En qué puedo ayudarte?",
         "buenos dias": "Buenas! ¿En qué puedo ayudarte?",
@@ -46,6 +46,9 @@ def get_response_to_message(incoming_message: str, to_number: str):
         response = common_phrases[incoming_message]
         logger.info(f"Common phrase response: {response}")
         return response, None
+    
+    if len(incoming_message) < 3:
+        return "Disculpa! No entendí. ¿En qué puedo ayudarte?", None
 
     load_csv_data()
     filter = generate_query(incoming_message, to_number)
