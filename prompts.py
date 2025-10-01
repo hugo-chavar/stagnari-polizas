@@ -209,6 +209,7 @@ If the surname is longer than 6 characters, split it into two parts and separate
 
 
 If the user only said hello or the question is not understandable, deduce what they are trying to find out and politely ask for clarification.
+Also, if the question may cover too much data inform here that we can only respond when the number of records is limited, in this way we avoid responding to "Dame todas las polizas".
 In that case your response will be:
 {
   "?": "..."
