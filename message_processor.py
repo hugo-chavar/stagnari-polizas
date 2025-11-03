@@ -68,27 +68,28 @@ def process_incoming_message(filter, incoming_message, to_number):
         incoming_message, filtered_data, to_number, negative_response
     )
     
-    file_list = None
-    if filter.get("soa", False) or filter.get("mer", False):
-        parsed_list = get_parsed_list(response)
-        file_list, tot_count, ok_count, error_count, error_msg = get_file_list(parsed_list)
-        logger.info(f"FileList: {file_list}")
-        if error_count > 0:
-            if tot_count > 1:
-                adj = ["Algunos", "no se"] if ok_count > 0 else ["Ninguno", "se"]
-                title = f"{adj[0]} de los PDF solicitados {adj[1]} pueden descargar"
-            else:
-                title = "Hay documentos que no se puede descargar"
-            response = (
-                f"{response}\n\n"
-                f"*{title}:*\n"
-                f"{error_msg}"
-            )
-        if ok_count > 0:
-            response = (
-                f"{response}"
-                f"{f'\n\n*Comienza la descarga de certificados de {ok_count} vehiculos ...*'}"
-            )
+    if response != negative_response:
+        file_list = None
+        if filter.get("soa", False) or filter.get("mer", False):
+            parsed_list = get_parsed_list(response)
+            file_list, tot_count, ok_count, error_count, error_msg = get_file_list(parsed_list)
+            logger.info(f"FileList: {file_list}")
+            if error_count > 0:
+                if tot_count > 1:
+                    adj = ["Algunos", "no se"] if ok_count > 0 else ["Ninguno", "se"]
+                    title = f"{adj[0]} de los PDF solicitados {adj[1]} pueden descargar"
+                else:
+                    title = "Hay documentos que no se puede descargar"
+                response = (
+                    f"{response}\n\n"
+                    f"*{title}:*\n"
+                    f"{error_msg}"
+                )
+            if ok_count > 0:
+                response = (
+                    f"{response}"
+                    f"{f'\n\n*Comienza la descarga de certificados de {ok_count} vehiculos ...*'}"
+                )
     
     logger.info(f"Final response:\n{response}")
     return response, file_list
