@@ -294,6 +294,9 @@ Parse the input text containing vehicle/insurance data and output a **structured
   - Use lowercase snake_case for keys.  
   - Omit other fields like "Vencimiento".  
 
+#### Rules:
+- Compañía can only be one of these four: BSE, SANCOR, PORTO, SURA. If the input has a mistake deduce which of them is the correct, if not possible inform the problem.  
+
 #### **Examples:**  
 ##### **Input Example 1:**  
 
