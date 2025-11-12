@@ -20,6 +20,11 @@ class CompanyPolicyException(Exception):
         self.company = company
         self.reason = reason
 
+class PolicyException(Exception):
+    def __init__(self, company, policy, reason):
+        super().__init__(f"Error en {company} poliza {policy} debido a: {reason}.")
+        self.company = company
+        self.reason = reason
 
 class FilenameRenameStrategy:
     def __init__(self, folder, filename) -> None:
@@ -644,7 +649,7 @@ class BaseDownloader(ABC):
             policy["vehicles"] = reconciled_vehicles
         except Exception as e:
             logger.error(f"Error downloading policy files: {str(e)}")
-            raise CompanyPolicyException(
-                company=self.name(), reason=f"Policy download failed: {str(e)}"
+            raise PolicyException(
+                company=self.name(), policy=policy["number"], reason=f"Policy download failed: {str(e)}"
             )
 
