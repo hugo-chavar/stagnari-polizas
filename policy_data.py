@@ -69,7 +69,7 @@ def sheet_data_to_csv(spreadsheet_url, sheet_name, csv_file_path):
                         ):
 
                             logger.info(
-                                f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compañia {company_value}"
+                                f"Matricula is empty or invalid. Setting to '{car.license_plate}'. Poliza: {policy_value}. Compania {company_value}"
                             )
                             row[lic_plate_index] = car.license_plate
                 else:
