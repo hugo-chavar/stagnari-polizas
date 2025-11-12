@@ -353,7 +353,7 @@ class BaseDownloader(ABC):
         """Helper method to search for a policy."""
         self.driver.navigate(self.search_url)
         policy_input = self.find_policy_input()
-        logger.debug(f"Found policy input field: {policy_input}")
+        logger.debug(f"Found policy input field")
         policy_input.clear()
         logger.debug(f"Entering policy number: {policy['number']}")
         policy_input.send_keys(policy["number"])
@@ -563,9 +563,13 @@ class BaseDownloader(ABC):
             logger.info("Logout completed")
 
     def execute_download_starters(self, policy, vehicle, vehicle_plate):
+        logger.debug("execute_download_starters 1")
         rel_path = self.get_relative_path(policy, vehicle_plate)
+        logger.debug("execute_download_starters 2")
         folder = self.get_folder_path(rel_path)
+        logger.debug("execute_download_starters 3")
         starter = self.get_soa_download_starter(policy)
+        logger.debug("execute_download_starters 4")
         if not starter:
             vehicle["status"] = "Ok"
             vehicle["reason"] = "No posee SOA"
@@ -575,17 +579,21 @@ class BaseDownloader(ABC):
             return
         filename = "soa.pdf"  # Certificado de SOA
         vehicle["folder"] = folder
+        logger.debug("execute_download_starters 5")
         self.download_file_from_starter(
                         starter, FilenameRenameStrategy(folder, filename)
                     )
         vehicle["soa"] = f"{rel_path}/{filename}"
 
+        logger.debug("execute_download_starters 6")
         if not vehicle.get("mercosur"):
             vehicle["mercosur"] = ""
             if not policy.get("soa_only", False):
+                logger.debug("execute_download_starters 7")
                 starter = self.get_mercosur_download_starter(policy)
                 filename = "mercosur.pdf"  # Certificado de Mercosur
                 try:
+                    logger.debug("execute_download_starters 8")
                     self.download_file_from_starter(
                                     starter, FilenameRenameStrategy(folder, filename)
                                 )
@@ -609,6 +617,7 @@ class BaseDownloader(ABC):
             )
             logger.debug(f"Reconciled vehicles: {reconciled_vehicles}")
             self.is_downloaded(policy)
+            logger.debug("download_policy_files 1")
             if policy["downloaded"]:
                 logger.debug("ALREADY DOWNLOADED")
                 return
@@ -619,8 +628,11 @@ class BaseDownloader(ABC):
                 vehicle_plate = vehicle["license_plate"]
 
                 try:
+                    logger.debug("download_policy_files 2")
                     self.go_to_vehicle_download_page(vehicle, validation_data)
+                    logger.debug("download_policy_files 3")
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
+                    logger.debug("download_policy_files 4")
                     if index < len(reconciled_vehicles) - 1:
                         self.prepare_next_vehicle_search()
                 except Exception as e:
