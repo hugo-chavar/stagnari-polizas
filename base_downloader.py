@@ -360,8 +360,10 @@ class BaseDownloader(ABC):
         self.search_policy()
 
     def is_downloaded(self, policy):
-        exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
-        policy_expired = exp_date < datetime.now().date()
+        # exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
+        # policy_expired = exp_date < datetime.now().date()
+        # If the csv has expired date is because it is outdated, the thruth is in the web
+        policy_expired = False
         policy_cancelled = policy.get("cancelled", False)
         soa_only = self.is_soa_only(policy)
         policy["expired"] = policy_expired
