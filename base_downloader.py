@@ -337,6 +337,12 @@ class BaseDownloader(ABC):
             policy["downloaded"] = download_success or policy["cancelled"]
 
             return download_success
+        except CompanyPolicyException as e:
+            error_message = f"Cancelled policy {policy['number']} from {self.name()}: {str(e)}"
+            logger.error(error_message)
+            policy["obs"] = str(e)
+            policy["cancelled"] = True
+            return False
         except Exception as e:
             error_message = f"Error downloading policy {policy['number']} from {self.name()}: {str(e)}"
             logger.error(error_message)
