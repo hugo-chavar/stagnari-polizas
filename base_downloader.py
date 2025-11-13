@@ -648,6 +648,7 @@ class BaseDownloader(ABC):
                         if new_expiration_date:
                             # Update expiration date
                             policy["expiration_date"] = new_expiration_date.strftime('%d/%m/%Y')
+                            policy["obs"] = "Vencimiento actualizado"
                             logger.debug(f"Set new expiration date to {policy["expiration_date"]}")
                             
                     logger.debug("download_policy_files 3")
