@@ -618,6 +618,9 @@ class BaseDownloader(ABC):
             policy_vehicles = policy["vehicles"]
             logger.debug(f"Page vehicles: {page_vehicles}")
             logger.debug(f"Policy vehicles: {policy_vehicles}")
+            exp_date = datetime.strptime(policy["expiration_date"], "%d/%m/%Y").date()
+            policy_expired = exp_date < datetime.now().date()
+            logger.debug(f"Policy expiration date: {policy["expiration_date"]}")
 
             reconciled_vehicles = self.reconcile_vehicles(
                 page_vehicles, policy_vehicles
@@ -637,6 +640,16 @@ class BaseDownloader(ABC):
                 try:
                     logger.debug("download_policy_files 2")
                     self.go_to_vehicle_download_page(vehicle, validation_data)
+                    # Check the expiration date
+                    if policy_expired:
+                        # Surely the expiration date in the web is correct
+                        logger.debug(f"Policy is expired")
+                        new_expiration_date = validation_data.get("new_expiration_date")
+                        if new_expiration_date:
+                            # Update expiration date
+                            policy["expiration_date"] = new_expiration_date.strftime('%d/%m/%Y')
+                            logger.debug(f"Set new expiration date to {policy["expiration_date"]}")
+                            
                     logger.debug("download_policy_files 3")
                     self.execute_download_starters(policy, vehicle, vehicle_plate)
                     logger.debug("download_policy_files 4")

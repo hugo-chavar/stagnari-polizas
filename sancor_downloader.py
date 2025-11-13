@@ -89,7 +89,7 @@ class SancorDownloader(BaseDownloader):
                     sancor_message = self.driver.find_element(Locator(LocatorType.CLASS, "dummyRow")).text
                 except:
                     sancor_message = "No hay resultados"
-                error_message = f"SANCOR informa: {sancor_message}. Revise que los datos sean correctos"
+                error_message = f"SANCOR informa: {sancor_message}"
                 raise Exception(error_message)
 
         except Exception as e:
@@ -175,18 +175,22 @@ class SancorDownloader(BaseDownloader):
                 else:
                     test_date = vigencia_desde + timedelta(days=364)
                     if test_date > fecha_actual:
-                        vigencia_hasta = vigencia_desde + timedelta(days=364)
+                        vigencia_hasta = test_date
                     else:
                         vigencia_hasta = None
                 
                 if vigencia_hasta:
                     # Verificar si la fecha actual está entre las fechas de vigencia
-                    if vigencia_desde <= fecha_actual <= vigencia_hasta:
-                        filas_vigentes[vigencia_desde] = fila
+                    if fecha_actual <= vigencia_hasta:
+                        filas_vigentes[vigencia_desde] = {
+                            'row': fila,
+                            'from': vigencia_desde,
+                            'until': vigencia_hasta
+                        }
 
         if filas_vigentes:
             fila_vigente = filas_vigentes[max(filas_vigentes.keys())]
-            logger.info(fila_vigente.get_attribute('outerHTML'))
+            logger.info(fila_vigente['row'].get_attribute('outerHTML'))
         logger.debug('fvr 5')
         return fila_vigente
 
@@ -200,8 +204,9 @@ class SancorDownloader(BaseDownloader):
             error_message = 'No se encuentra una poliza vigente en los proximos 20 dias'
             raise CompanyPolicyException(self.name(), error_message)
         logger.debug('gtvdp 4')
-        logger.info(f"Poliza vigente encontrada. \n{valid_row.get_attribute('outerHTML')}")
-        valid_row.click()
+        logger.info(f"Poliza vigente encontrada. \n{valid_row['row'].get_attribute('outerHTML')}")
+        valid_row['row'].click()
+        validation_data['new_expiration_date'] = valid_row['until']
         logger.info('Click ok valid_row')
 
     def validate_policy(self, policy, endorsement_line):
