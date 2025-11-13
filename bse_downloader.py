@@ -263,6 +263,7 @@ class BseDownloader(BaseDownloader):
         pass
 
     def go_to_vehicle_download_page(self, vehicle, validation_data):
+        # TODO: Add new_expiration_date to validation_data
         logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]}")
         self.driver.click(btn_print_lctor)
         logger.debug("Print button clicked, waiting for refresh")

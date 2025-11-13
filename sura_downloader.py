@@ -212,6 +212,7 @@ class SuraDownloader(BaseDownloader):
 
     def go_to_vehicle_download_page(self, vehicle, validation_data):
         # Execute the redirect script for the vehicle
+        # TODO: Add new_expiration_date to validation_data
         vehicle_id = vehicle["page_id"]
         logger.debug(f"Go to download page of vehicle {vehicle["license_plate"]} with ID {vehicle_id}")
         script = f"redirectPage('DetalleVehiculo.aspx', {validation_data["id"]}, {vehicle_id}, false)"
