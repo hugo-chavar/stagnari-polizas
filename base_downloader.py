@@ -19,6 +19,13 @@ class CompanyPolicyException(Exception):
         super().__init__(f"Error en compañia {company} debido a: {reason}.")
         self.company = company
         self.reason = reason
+    
+    def core_reason(self):
+        if self.reason:
+            aux = self.reason.split(": ", 1)
+            return aux[len(aux) - 1]
+        
+        return str(self)
 
 class PolicyException(Exception):
     def __init__(self, company, policy, reason):
@@ -345,7 +352,7 @@ class BaseDownloader(ABC):
         except CompanyPolicyException as e:
             error_message = f"Cancelled policy {policy['number']} from {self.name()}: {str(e)}"
             logger.error(error_message)
-            policy["obs"] = str(e)
+            policy["obs"] = e.core_reason()
             policy["cancelled"] = True
             return False
         except Exception as e:
